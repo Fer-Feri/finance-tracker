@@ -1,26 +1,306 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@custom-variant dark (&:is(.dark *));
+
+/* ========================================
+   📝 تعریف فونت IRANSans (برای فارسی)
+   ======================================== */
+@font-face {
+  font-family: "IRANSans";
+  src: url("/fonts/IRANSansX-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IRANSans";
+  src: url("/fonts/IRANSansX-Bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
 }
 
+/* ========================================
+   🌈 متغیرهای رنگی حالت روشن (Light Mode)
+   ======================================== */
+:root {
+  /* شعاع گوشه‌ها */
+  --radius: 0.625rem;
+
+  /* 🎨 رنگ‌های اصلی پس‌زمینه */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.15 0.05 270);
+
+  /* 📦 کارت‌ها و پاپ‌اورها */
+  --card: oklch(0.99 0.01 250);
+  --card-foreground: oklch(0.15 0.05 270);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.05 270);
+
+  /* 🔵 رنگ اصلی (Primary) - آبی نئونی */
+  --primary: oklch(0.6 0.2 240);
+  --primary-foreground: oklch(0.98 0.01 250);
+  --primary-rgb: 51, 51, 255; /* برای سایه‌های نئونی */
+
+  /* 🟢 رنگ ثانویه (Secondary) - سبز نئونی */
+  --secondary: oklch(0.75 0.18 160);
+  --secondary-foreground: oklch(0.15 0.05 270);
+
+  /* 🟡 رنگ Accent - زرد نئونی */
+  --accent: oklch(0.92 0.15 100);
+  --accent-foreground: oklch(0.15 0.05 270);
+
+  /* 🔴 رنگ تخریبی - صورتی نئونی */
+  --destructive: oklch(0.6 0.25 350);
+  --destructive-foreground: oklch(0.98 0.01 250);
+
+  /* 🌫️ رنگ‌های کم‌رنگ */
+  --muted: oklch(0.96 0.01 250);
+  --muted-foreground: oklch(0.5 0.05 260);
+
+  /* 🔲 حاشیه‌ها و ورودی‌ها */
+  --border: oklch(0.9 0.02 250);
+  --input: oklch(0.9 0.02 250);
+  --ring: oklch(0.6 0.2 240);
+
+  /* 📊 رنگ‌های نمودار */
+  --chart-1: oklch(0.6 0.2 240);
+  --chart-2: oklch(0.75 0.18 160);
+  --chart-3: oklch(0.92 0.15 100);
+  --chart-4: oklch(0.6 0.25 350);
+  --chart-5: oklch(0.7 0.15 30);
+
+  /* 🧭 سایدبار */
+  --sidebar-background: oklch(0.99 0.01 250);
+  --sidebar-foreground: oklch(0.15 0.05 270);
+  --sidebar-primary: oklch(0.6 0.2 240);
+  --sidebar-primary-foreground: oklch(0.98 0.01 250);
+  --sidebar-accent: oklch(0.96 0.01 250);
+  --sidebar-accent-foreground: oklch(0.15 0.05 270);
+  --sidebar-border: oklch(90.238% 0.02005 45.04);
+  --sidebar-ring: oklch(0.6 0.2 240);
+}
+
+/* ========================================
+   🌙 متغیرهای رنگی حالت تاریک (Dark Mode)
+   ======================================== */
+.dark {
+  --background: oklch(0.18 0.04 280);
+  --foreground: oklch(0.96 0.01 250);
+
+  --card: oklch(0.22 0.05 280);
+  --card-foreground: oklch(0.96 0.01 250);
+  --popover: oklch(0.22 0.05 280);
+  --popover-foreground: oklch(0.96 0.01 250);
+
+  /* 🟣 رنگ اصلی - بنفش نئونی */
+  --primary: oklch(0.55 0.22 290);
+  --primary-foreground: oklch(0.96 0.01 250);
+  --primary-rgb: 153, 51, 255; /* بنفش نئونی */
+
+  /* 🟪 رنگ ثانویه - بنفش روشن */
+  --secondary: oklch(0.65 0.25 310);
+  --secondary-foreground: oklch(0.96 0.01 250);
+
+  /* 🌸 رنگ Accent - صورتی نئونی */
+  --accent: oklch(0.65 0.28 340);
+  --accent-foreground: oklch(0.96 0.01 250);
+
+  /* 🟡 رنگ تخریبی - زرد نئونی */
+  --destructive: oklch(0.8 0.2 80);
+  --destructive-foreground: oklch(0.15 0.05 270);
+
+  --muted: oklch(0.28 0.05 280);
+  --muted-foreground: oklch(0.65 0.03 260);
+
+  --border: oklch(0.35 0.05 280 / 0.3);
+  --input: oklch(0.35 0.05 280 / 0.4);
+  --ring: oklch(0.65 0.25 310);
+
+  /* 📊 رنگ‌های نمودار */
+  --chart-1: oklch(0.55 0.22 290);
+  --chart-2: oklch(0.65 0.25 310);
+  --chart-3: oklch(0.65 0.28 340);
+  --chart-4: oklch(0.8 0.2 80);
+  --chart-5: oklch(0.7 0.2 30);
+
+  --sidebar-background: oklch(0.22 0.05 280);
+  --sidebar-foreground: oklch(0.96 0.01 250);
+  --sidebar-primary: oklch(0.55 0.22 290);
+  --sidebar-primary-foreground: oklch(0.96 0.01 250);
+  --sidebar-accent: oklch(0.28 0.05 280);
+  --sidebar-accent-foreground: oklch(0.96 0.01 250);
+  --sidebar-border: oklch(0.35 0.05 280 / 0.3);
+  --sidebar-ring: oklch(0.65 0.25 310);
+}
+
+/* ========================================
+   🎯 تبدیل متغیرهای CSS به Tailwind Theme
+   ======================================== */
 @theme inline {
+  /* رنگ‌های اصلی */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* رنگ‌های نمودار */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* سایدبار */
+  --color-sidebar: var(--sidebar-background);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* شعاع گوشه‌ها */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ========================================
+   🎨 استایل‌های پایه
+   ======================================== */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: "IRANSans", ui-sans-serif, system-ui, sans-serif;
+  }
+
+  /* اسکرول بار سفارشی */
+  ::-webkit-scrollbar {
+    @apply h-2 w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-lg;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ========================================
+   🔥 کلاس‌های سفارشی سایدبار (نئونی)
+   ======================================== */
+@layer utilities {
+  /* منوی اصلی - حالت پایه */
+  .sidebar-menu-item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* منوی اصلی - حالت فعال */
+  .sidebar-menu-item-active {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    font-weight: 700;
+    box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.4);
+  }
+
+  /* منوی اصلی - حالت غیرفعال */
+  .sidebar-menu-item-inactive {
+    color: var(--sidebar-foreground);
+  }
+  .sidebar-menu-item-inactive:hover {
+    background-color: oklch(from var(--sidebar-accent) l c h / 0.5);
+  }
+
+  /* زیرمنو - حالت پایه */
+  .sidebar-submenu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    border-radius: 0.5rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* زیرمنو - حالت فعال */
+  .sidebar-submenu-item-active {
+    background-color: oklch(from var(--primary) l c h / 0.7);
+    color: var(--primary-foreground);
+    border-right: 4px solid var(--primary);
+    font-weight: 700;
+    box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.3);
+  }
+
+  /* زیرمنو - حالت غیرفعال */
+  .sidebar-submenu-item-inactive {
+    color: oklch(from var(--sidebar-foreground) l c h / 0.7);
+    border-right: 2px solid transparent;
+  }
+  .sidebar-submenu-item-inactive:hover {
+    background-color: oklch(from var(--sidebar-accent) l c h / 0.4);
+    border-right-color: var(--sidebar-accent);
+  }
+
+  /* بج اصلی */
+  .sidebar-badge-primary {
+    background-color: oklch(from var(--sidebar-primary-foreground) l c h / 0.7);
+    color: var(--primary);
+    border: 1px solid oklch(from var(--primary) l c h / 0.4);
+    border-radius: 9999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.2);
+  }
+
+  /* بج ثانویه */
+  .sidebar-badge-secondary {
+    background-color: oklch(from var(--primary) l c h / 0.1);
+    color: oklch(from var(--primary) l c h / 0.8);
+    border: 1px solid oklch(from var(--primary) l c h / 0.2);
+    border-radius: 9999px;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
 }
