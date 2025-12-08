@@ -219,88 +219,45 @@
 }
 
 /* ========================================
-   🔥 کلاس‌های سفارشی سایدبار (نئونی)
    ======================================== */
+/* globals.css */
 @layer utilities {
-  /* منوی اصلی - حالت پایه */
+  /* ========== استایل‌های منوی اصلی ========== */
   .sidebar-menu-item {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    gap: 0.75rem;
-    border-radius: 0.75rem;
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    @apply flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-300;
   }
 
-  /* منوی اصلی - حالت فعال */
+  /* حالت فعال */
   .sidebar-menu-item-active {
-    background-color: var(--primary);
-    color: var(--primary-foreground);
-    font-weight: 700;
-    box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.4);
+    @apply bg-primary/15 text-primary;
   }
 
-  /* منوی اصلی - حالت غیرفعال */
+  /* حالت غیرفعال */
   .sidebar-menu-item-inactive {
-    color: var(--sidebar-foreground);
-  }
-  .sidebar-menu-item-inactive:hover {
-    background-color: oklch(from var(--sidebar-accent) l c h / 0.5);
+    @apply text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground;
   }
 
-  /* زیرمنو - حالت پایه */
+  /* ========== استایل‌های زیرمنو ========== */
   .sidebar-submenu-item {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    border-radius: 0.5rem;
-    padding: 0.625rem 1rem;
-    font-size: 0.875rem;
-    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    @apply flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm transition-all duration-300;
   }
 
-  /* زیرمنو - حالت فعال */
+  /* حالت فعال زیرمنو */
   .sidebar-submenu-item-active {
-    background-color: oklch(from var(--primary) l c h / 0.7);
-    color: var(--primary-foreground);
-    border-right: 4px solid var(--primary);
-    font-weight: 700;
-    box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.3);
+    @apply bg-primary/10 text-primary font-medium;
   }
 
-  /* زیرمنو - حالت غیرفعال */
+  /* حالت غیرفعال زیرمنو */
   .sidebar-submenu-item-inactive {
-    color: oklch(from var(--sidebar-foreground) l c h / 0.7);
-    border-right: 2px solid transparent;
-  }
-  .sidebar-submenu-item-inactive:hover {
-    background-color: oklch(from var(--sidebar-accent) l c h / 0.4);
-    border-right-color: var(--sidebar-accent);
+    @apply text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground;
   }
 
-  /* بج اصلی */
+  /* ========== Badge‌ها ========== */
   .sidebar-badge-primary {
-    background-color: oklch(from var(--sidebar-primary-foreground) l c h / 0.7);
-    color: var(--primary);
-    border: 1px solid oklch(from var(--primary) l c h / 0.4);
-    border-radius: 9999px;
-    padding: 0.125rem 0.625rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.2);
+    @apply bg-primary/20 text-primary rounded-full px-2.5 py-0.5 text-xs font-bold;
   }
 
-  /* بج ثانویه */
   .sidebar-badge-secondary {
-    background-color: oklch(from var(--primary) l c h / 0.1);
-    color: oklch(from var(--primary) l c h / 0.8);
-    border: 1px solid oklch(from var(--primary) l c h / 0.2);
-    border-radius: 9999px;
-    padding: 0.125rem 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 500;
+    @apply bg-secondary/20 text-secondary-foreground rounded-full px-2 py-0.5 text-xs font-semibold;
   }
 }

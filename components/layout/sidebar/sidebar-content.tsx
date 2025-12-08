@@ -1,48 +1,21 @@
 "use client";
 
 import { navigationGroups } from "@/config/navigation";
-import { ChevronDown, HelpCircle } from "lucide-react";
-import { useState } from "react";
-import Link from "next/link";
+import { useSidebarState } from "@/hooks/use-sidebar-state";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
-import { usePathname } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronDown, HelpCircle } from "lucide-react";
+import Link from "next/link";
 
-export default function Sidebar() {
-  const pathname = usePathname();
+interface SidebarContentProps {
+  onLinkClick?: () => void;
+}
 
-  const [openMenus, setOpenMenus] = useState<string[]>(() => {
-    const activeMenus: string[] = [];
-    navigationGroups.forEach((group) => {
-      group.items.forEach((item) => {
-        if (item.children) {
-          const hasActiveChild = item.children.some((child) =>
-            pathname.startsWith(child.href),
-          );
-          if (hasActiveChild) {
-            activeMenus.push(item.id);
-          }
-        }
-      });
-    });
-    return activeMenus;
-  });
-
-  const toggleMenu = (id: string) => {
-    setOpenMenus((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
-  };
-
-  const isActive = (href: string) => {
-    if (href === "/dashboard") {
-      return pathname === "/dashboard";
-    }
-    return pathname.startsWith(href);
-  };
+export default function SidebarContent({ onLinkClick }: SidebarContentProps) {
+  const { openMenus, toggleMenu, isActive } = useSidebarState();
 
   return (
-    <aside className="border-sidebar-border bg-sidebar fixed top-0 right-0 hidden h-screen w-64 flex-col border-l lg:flex">
+    <div className="flex h-full flex-col">
       {/* ========== Header ========== */}
       <div className="border-sidebar-border flex h-16 shrink-0 items-center gap-2 border-b px-6">
         <div className="flex items-center gap-3">
@@ -72,6 +45,7 @@ export default function Sidebar() {
                 <div key={item.id}>
                   {item.children ? (
                     <>
+                      {/* دکمه منوی والد */}
                       <button
                         type="button"
                         onClick={() => toggleMenu(item.id)}
@@ -97,6 +71,7 @@ export default function Sidebar() {
                         />
                       </button>
 
+                      {/* زیرمنوها */}
                       <AnimatePresence>
                         {openMenus.includes(item.id) && item.children && (
                           <motion.div
@@ -111,6 +86,7 @@ export default function Sidebar() {
                                 <Link
                                   key={child.id}
                                   href={child.href}
+                                  onClick={onLinkClick} // بستن منو در موبایل
                                   className={cn(
                                     "sidebar-submenu-item",
                                     isActive(child.href)
@@ -135,8 +111,10 @@ export default function Sidebar() {
                       </AnimatePresence>
                     </>
                   ) : (
+                    // لینک ساده
                     <Link
                       href={item.href}
+                      onClick={onLinkClick} // بستن منو در موبایل
                       className={cn(
                         "sidebar-menu-item",
                         isActive(item.href)
@@ -164,12 +142,13 @@ export default function Sidebar() {
       <div className="border-sidebar-border shrink-0 border-t p-4">
         <Link
           href="/dashboard/help"
+          onClick={onLinkClick} // بستن منو در موبایل
           className="bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent/80 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors"
         >
           <HelpCircle className="h-5 w-5 shrink-0" />
           <span className="flex-1 text-right">راهنما و پشتیبانی</span>
         </Link>
       </div>
-    </aside>
+    </div>
   );
 }
