@@ -1,18 +1,17 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { useEffect } from "react";
+import { cn } from "@/lib/utils";
 import SidebarContent from "./sidebar-content";
+import { useSidebarStore } from "@/store/useSidebarStore";
 
-interface MobileMenuPorps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+export default function MobileSidebar() {
+  // ✅ اتصال به Zustand
+  const { isMobileOpen, closeMobileMenu } = useSidebarStore();
 
-export default function MobileSidebar({ isOpen, onClose }: MobileMenuPorps) {
-  // جلوگیری از اسکرول شدن صفحه اصلی وقتی منو باز است
+  // جلوگیری از اسکرول بادی
   useEffect(() => {
-    if (isOpen) {
+    if (isMobileOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
@@ -20,27 +19,27 @@ export default function MobileSidebar({ isOpen, onClose }: MobileMenuPorps) {
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [isOpen]);
+  }, [isMobileOpen]);
 
   return (
     <>
-      {/* --- Backdrop (لایه تاریک پشت) --- */}
+      {/* Backdrop */}
       <div
-        onClick={onClose}
+        onClick={closeMobileMenu}
         className={cn(
           "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden",
-          isOpen ? "visible opacity-100" : "invisible opacity-0",
+          isMobileOpen ? "visible opacity-100" : "invisible opacity-0",
         )}
       />
 
-      {/* --- Main Sidebar (پنل کشویی) --- */}
+      {/* Main Sidebar */}
       <aside
         className={cn(
           "border-sidebar-border bg-sidebar fixed top-0 right-0 z-50 h-screen w-64 border-l transition-transform duration-300 ease-in-out lg:hidden",
-          isOpen ? "translate-x-0" : "translate-x-full",
+          isMobileOpen ? "translate-x-0" : "translate-x-full",
         )}
       >
-        <SidebarContent onLinkClick={onClose} />
+        <SidebarContent />
       </aside>
     </>
   );
