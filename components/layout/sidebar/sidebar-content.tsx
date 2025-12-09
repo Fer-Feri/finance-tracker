@@ -5,7 +5,10 @@ import { useSidebarState } from "@/hooks/use-sidebar-state";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, HelpCircle } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+
+import logo from "@/app/favicon.ico";
 
 interface SidebarContentProps {
   onLinkClick?: () => void;
@@ -19,9 +22,10 @@ export default function SidebarContent({ onLinkClick }: SidebarContentProps) {
       {/* ========== Header ========== */}
       <div className="border-sidebar-border flex h-16 shrink-0 items-center gap-2 border-b px-6">
         <div className="flex items-center gap-3">
-          <div className="bg-primary flex h-9 w-9 items-center justify-center rounded-xl shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)]">
+          <Image src={logo} alt="LOGO" className="h-11 w-11" />
+          {/* <div className="bg-primary flex h-9 w-9 items-center justify-center rounded-xl shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)]">
             <span className="text-primary-foreground text-xl font-bold">$</span>
-          </div>
+          </div> */}
           <span className="text-lg font-bold">ترازینو</span>
         </div>
       </div>

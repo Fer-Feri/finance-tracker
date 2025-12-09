@@ -25,7 +25,7 @@ export default function NotificationMenu() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -10, scale: 0.95 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
-          className="border-border/50 bg-card absolute top-full left-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border shadow-[0_8px_30px_rgba(0,0,0,0.12)] backdrop-blur-xl"
+          className="border-border/50 bg-card absolute top-full -left-10 z-50 mt-2 w-[calc(90vw-2rem)] max-w-[360px] min-w-[280px] overflow-hidden rounded-xl border shadow-[0_8px_30px_rgba(0,0,0,0.12)] backdrop-blur-xl md:w-80"
         >
           {/* ========== Header ========== */}
           <div className="border-border/30 from-primary/5 to-secondary/5 flex items-center justify-between border-b bg-gradient-to-r px-4 py-3">
