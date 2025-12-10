@@ -10,7 +10,6 @@ interface DashboardLayoutProps {
 
 export default function DashboardHeader({
   title = "داشبورد",
-  onMenuClick,
 }: DashboardLayoutProps) {
   // ------------------------------------
   const user: UserProfile = {
@@ -18,10 +17,10 @@ export default function DashboardHeader({
   };
 
   return (
-    <header className="border-border bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 w-full border-b backdrop-blur">
+    <header className="border-border bg-background/95 supports-[backdrop-filter]:bg-background/60 z-40 w-full border-b backdrop-blur">
       <div className="flex h-16 items-center justify-between gap-4 px-6">
         {/* Right Side: Menu Button (Mobile) + Title */}
-        <HeaderRight title={title} onMenuClick={onMenuClick} />
+        <HeaderRight title={title} />
         {/* Left Side: Actions */}
         <HeaderLeft user={user} />
       </div>
