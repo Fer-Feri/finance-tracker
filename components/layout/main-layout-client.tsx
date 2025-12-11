@@ -12,7 +12,6 @@ export default function MainLayoutClient({
   children: React.ReactNode;
 }) {
   // State برای باز/بسته بودن منوی موبایل
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div className="bg-background flex min-h-screen">
@@ -20,19 +19,13 @@ export default function MainLayoutClient({
       <Sidebar />
 
       {/* Sidebar کشویی موبایل (جدید) */}
-      <MobileSidebar
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-      />
+      <MobileSidebar />
 
       {/* Main Content Area */}
-      <main className="flex flex-auto flex-col transition-all duration-300 lg:mr-64">
-        <DashboardHeader
-          title="داشبورد"
-          onMenuClick={() => setIsMobileMenuOpen(true)} // دکمه باز کردن
-        />
+      <main className="flex min-w-0 flex-auto flex-col transition-all duration-300 lg:mr-64">
+        <DashboardHeader title="داشبورد" />
 
-        <div className="mx-auto w-full flex-auto p-6">{children}</div>
+        <div className="mx-auto w-full min-w-0 flex-auto p-6">{children}</div>
       </main>
     </div>
   );

@@ -5,7 +5,6 @@ import HeaderLeft from "./headerLeft";
 import { UserProfile } from "@/types/user-profile";
 interface DashboardLayoutProps {
   title?: string;
-  onMenuClick: () => void;
 }
 
 export default function DashboardHeader({

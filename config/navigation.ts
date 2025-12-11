@@ -28,26 +28,26 @@ export const mainItems: NavItem[] = [
     href: "/dashboard/transactions",
     icon: ArrowRightLeft,
     badge: "12",
-    children: [
-      {
-        id: "transactions-new",
-        title: "افزودن تراکنش",
-        href: "/dashboard/transactions/new",
-        icon: Plus,
-      },
-      {
-        id: "transactions-list",
-        title: "لیست تراکنش‌ها",
-        href: "/dashboard/transactions",
-        icon: List, // 👈 تصحیح آیکون
-      },
-      {
-        id: "transactions-categories",
-        title: "دسته‌بندی‌ها",
-        href: "/dashboard/transactions/categories",
-        icon: FolderTree,
-      },
-    ],
+    // children: [
+    //   {
+    //     id: "transactions-new",
+    //     title: "افزودن تراکنش",
+    //     href: "/dashboard/transactions/new",
+    //     icon: Plus,
+    //   },
+    //   {
+    //     id: "transactions-list",
+    //     title: "لیست تراکنش‌ها",
+    //     href: "/dashboard/transactions",
+    //     icon: List, // 👈 تصحیح آیکون
+    //   },
+    //   {
+    //     id: "transactions-categories",
+    //     title: "دسته‌بندی‌ها",
+    //     href: "/dashboard/transactions/categories",
+    //     icon: FolderTree,
+    //   },
+    // ],
   },
 
   {
