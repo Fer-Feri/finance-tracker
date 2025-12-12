@@ -1,3 +1,6 @@
+"use client";
+
+import AddTransactionModal from "@/components/transaction/AddTransactionModal";
 import { transactionsData } from "@/config/tranaction-data";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { cn } from "@/lib/utils";
@@ -11,8 +14,11 @@ import {
   Search,
   SlidersHorizontal,
 } from "lucide-react";
+import { useState } from "react";
 
 export default function TransactionsPage() {
+  // ========== 🆕 State برای Modal ==========
+  const [isModalOpen, setIsModalOpen] = useState(false);
   // ----------------------------------------
   const statusClasses: Record<TransactionStatus, string> = {
     completed: "bg-secondary text-white",
@@ -47,7 +53,10 @@ export default function TransactionsPage() {
           </p>
         </div>
         {/* add transaction btn */}
-        <button className="group bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90 flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="group bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90 flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+        >
           <Plus className="h-5 w-5 transition-transform group-hover:rotate-90" />
           <span>تراکنش جدید</span>
         </button>
@@ -222,6 +231,17 @@ export default function TransactionsPage() {
           </button>
         </div>
       </div>
+
+      <AddTransactionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={(data) => {
+          console.log("✅ داده دریافت شد:", data);
+          alert(
+            `تراکنش ${data.type === "income" ? "درآمد" : "هزینه"} به مبلغ ${data.amount.toLocaleString()} تومان ثبت شد!`,
+          );
+        }}
+      />
     </div>
   );
 }
