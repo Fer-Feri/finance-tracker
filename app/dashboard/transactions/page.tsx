@@ -4,6 +4,7 @@ import AddTransactionModal from "@/components/transaction/AddTransactionModal";
 import { transactionsData } from "@/config/tranaction-data";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { cn } from "@/lib/utils";
+import { useTransactionModalStore } from "@/store/transactionModal-store";
 import { TransactionStatus, transactionType } from "@/types/transaction";
 import {
   ArrowDownRight,
@@ -14,11 +15,10 @@ import {
   Search,
   SlidersHorizontal,
 } from "lucide-react";
-import { useState } from "react";
 
 export default function TransactionsPage() {
-  // ========== 🆕 State برای Modal ==========
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isOpen, mode, openAdd, openEdit, onClose, selectedTransactionId } =
+    useTransactionModalStore();
   // ----------------------------------------
   const statusClasses: Record<TransactionStatus, string> = {
     completed: "bg-secondary text-white",
@@ -54,7 +54,7 @@ export default function TransactionsPage() {
         </div>
         {/* add transaction btn */}
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={openAdd}
           className="group bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90 flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
         >
           <Plus className="h-5 w-5 transition-transform group-hover:rotate-90" />
@@ -192,9 +192,12 @@ export default function TransactionsPage() {
                       {statusLabels[transaction.status]}
                     </span>
                   </td>
-                  {/* Column-7 ===> Operation */}
+                  {/* Column-7 ===> Edit Btn */}
                   <td className="table-cell p-4 text-center">
-                    <button className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors">
+                    <button
+                      onClick={() => openEdit(transaction.id)}
+                      className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
+                    >
                       <MoreHorizontal className="h-4 w-4" />
                     </button>
                   </td>
@@ -233,14 +236,10 @@ export default function TransactionsPage() {
       </div>
 
       <AddTransactionModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={(data) => {
-          console.log("✅ داده دریافت شد:", data);
-          alert(
-            `تراکنش ${data.type === "income" ? "درآمد" : "هزینه"} به مبلغ ${data.amount.toLocaleString()} تومان ثبت شد!`,
-          );
-        }}
+        isOpen={isOpen}
+        mode={mode}
+        onClose={onClose}
+        selectedTransactionId={selectedTransactionId}
       />
     </div>
   );

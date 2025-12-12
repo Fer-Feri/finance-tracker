@@ -39,6 +39,9 @@ export interface TransactionFormData {
 // Props Modal
 export interface AddTransactionModalProps {
   isOpen: boolean;
+  mode: "add" | "edit";
+  selectedTransactionId: string | null;
+  // initialData?: TransactionFormData;
   onClose: () => void;
-  onSubmit: (data: TransactionFormData) => void;
+  // onSubmit: (data: TransactionFormData) => void;
 }
