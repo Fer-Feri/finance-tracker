@@ -18,7 +18,7 @@ export function PersianDatePicker({ value, onChange }: PersianDatePickerProps) {
         if (!date) return;
         onChange(date.format());
       }}
-      inputClass="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+      inputClass="w-full rounded-lg mr-2 border border-border bg-background px-3 py-2 text-sm"
     />
   );
 }

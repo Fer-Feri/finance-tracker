@@ -38,6 +38,16 @@ interface FormState {
   notes: string;
 }
 
+// =============================================================
+//  انتخاب خودکار دسته‌بندی
+// =============================================================
+function getDefaultCategoryByType(type: "income" | "expense") {
+  const firstMatch = CategoryDataOptionFormModal.find((category) =>
+    category.types.includes(type),
+  );
+  return firstMatch ? firstMatch.value : "";
+}
+
 // =================================================
 // Initialize Form State (Add / Edit)
 // =================================================
@@ -48,7 +58,8 @@ function getInitialFormState(
   if (mode === "edit" && transaction) {
     return {
       description: transaction.description ?? "",
-      category: transaction.category,
+      category:
+        transaction.category || getDefaultCategoryByType(transaction.type),
       date: transaction.date,
       amount: transaction.amount,
       type: transaction.type,
@@ -58,9 +69,11 @@ function getInitialFormState(
     };
   }
 
+  const defaultType: FormState["type"] = "expense";
+
   return {
     description: "",
-    category: "",
+    category: getDefaultCategoryByType(defaultType),
     date: getTodayJalali(),
     amount: 0,
     type: "expense",
@@ -79,8 +92,13 @@ export default function ModalForm({
   selectedTransaction,
   onClose,
 }: ModalFormProps) {
+  // -----------------------------------------------------
   const updateTransaction = useTransactionModalStore(
     (state) => state.updateTransaction,
+  );
+  // -----------------------------------------------------
+  const addTransaction = useTransactionModalStore(
+    (state) => state.addTransaction,
   );
 
   const [formState, setFormState] = useState<FormState>(() =>
@@ -93,6 +111,19 @@ export default function ModalForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (mode === "add") {
+      addTransaction({
+        description: formState.description,
+        amount: formState.amount,
+        category: formState.category,
+        date: formState.date,
+        type: formState.type,
+        status: formState.status,
+        paymentMethod: formState.paymentMethod,
+      });
+      console.log("✅ Transaction Added (Local State):", formState);
+    }
+
     if (mode === "edit" && selectedTransactionId) {
       updateTransaction(selectedTransactionId, {
         description: formState.description,
@@ -104,7 +135,7 @@ export default function ModalForm({
         paymentMethod: formState.paymentMethod,
       });
 
-      console.log("✅ Transaction Updated (Local State)");
+      console.log("✅ Transaction Updated (Local State):", formState);
     }
 
     onClose();
@@ -141,7 +172,7 @@ export default function ModalForm({
                   setFormState((prev) => ({
                     ...prev,
                     type: item.value,
-                    category: "", // Reset category when type changes
+                    category: getDefaultCategoryByType(item.value),
                   }))
                 }
                 className={`rounded-xl border-2 p-4 transition-all duration-300 ${
@@ -164,6 +195,7 @@ export default function ModalForm({
       <div className="space-y-2">
         <label className="text-foreground text-sm font-medium">
           مبلغ (تومان)
+          <span className="text-rose-500"> *</span>
         </label>
 
         <CurrencyInput
@@ -216,7 +248,8 @@ export default function ModalForm({
       {/* ================= Description ================= */}
       <div className="space-y-3">
         <label htmlFor="description" className="text-sm font-medium">
-          توضیحات
+          توضیحات:
+          <span className="text-rose-500"> *</span>
         </label>
 
         <input
@@ -228,13 +261,14 @@ export default function ModalForm({
               description: e.target.value,
             }))
           }
+          required
           className="mt-2 w-full rounded-xl border px-4 py-3"
         />
       </div>
 
       {/* ================= Date ================= */}
       <div className="space-y-2">
-        <label className="text-foreground text-sm font-medium">تاریخ</label>
+        <label className="text-foreground text-sm font-medium">تاریخ:</label>
 
         <PersianDatePicker
           value={formState.date}
@@ -306,7 +340,7 @@ export default function ModalForm({
               notes: e.target.value,
             }))
           }
-          className="w-full resize-none rounded-xl border px-4 py-3"
+          className="mt-2 w-full resize-none rounded-xl border px-4 py-3"
         />
       </div>
 

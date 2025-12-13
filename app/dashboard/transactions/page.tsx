@@ -2,6 +2,10 @@
 
 import AddTransactionModal from "@/components/transaction/AddTransactionModal";
 import { transactionsData } from "@/config/tranaction-data";
+import {
+  categoryLabelMap,
+  paymentMethodLabelMap,
+} from "@/config/transaction-form-data";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { cn } from "@/lib/utils";
 import { useTransactionModalStore } from "@/store/transactionModal-store";
@@ -10,11 +14,13 @@ import {
   ArrowDownRight,
   ArrowUpDown,
   ArrowUpLeft,
-  MoreHorizontal,
+  Edit,
   Plus,
   Search,
   SlidersHorizontal,
+  Trash2,
 } from "lucide-react";
+import { useEffect } from "react";
 
 export default function TransactionsPage() {
   const {
@@ -25,7 +31,27 @@ export default function TransactionsPage() {
     onClose,
     selectedTransactionId,
     selectedTransaction,
+    deleteTransaction,
+    transactions,
+
+    page,
+    pageSize,
+    setPage,
+    paginatedTransactions,
+    totalTransactions,
   } = useTransactionModalStore();
+
+  // -------------------------------------------------------
+  const setTransactions = useTransactionModalStore(
+    (state) => state.setTransactions,
+  );
+
+  //چون فعلاً دیتابیس نداریم، باید داده‌های ثابت (transactionsData) را یک بار داخل کامپوننت صفحه به استور تزریق کنید.
+  useEffect(() => {
+    if (transactions.length === 0) {
+      setTransactions(transactionsData);
+    }
+  }, [transactions.length, setTransactions]);
   // ----------------------------------------
   const statusClasses: Record<TransactionStatus, string> = {
     completed: "bg-secondary text-white",
@@ -45,6 +71,25 @@ export default function TransactionsPage() {
     income: "bg-primary/10 text-primary",
     expense: "bg-destructive/10 text-destructive",
   };
+
+  // ------------------DELETE TRANSACTION------------------------
+  const handleDelete = (id: string) => {
+    // Confirm قبل از حذف
+    if (window.confirm("آیا از حذف این تراکنش اطمینان دارید؟")) {
+      deleteTransaction(id);
+      console.log(`✅ Transaction Deleted: ${id}`);
+    }
+  };
+
+  // ==============================================================
+  // =======================Pagination=============================
+  // ==============================================================
+  const data = paginatedTransactions();
+  const total = totalTransactions();
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+
+  const startItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endItem = Math.min(page * pageSize, total);
 
   return (
     <div className="h-full space-y-8 p-2">
@@ -128,7 +173,7 @@ export default function TransactionsPage() {
               </tr>
             </thead>
             <tbody>
-              {transactionsData.map((transaction) => (
+              {data.map((transaction) => (
                 <tr
                   key={transaction.id}
                   className="group border-border hover:bg-muted/30 border-b transition-colors last:border-b-0"
@@ -161,7 +206,8 @@ export default function TransactionsPage() {
                   {/* Column-2 ===> Category */}
                   <td className="table-cell p-4 text-center">
                     <span className="bg-secondary/50 text-secondary-foreground inline-block rounded-lg px-3 py-1 text-xs font-medium">
-                      {transaction.category}
+                      {categoryLabelMap[transaction.category] ??
+                        transaction.category}
                     </span>
                   </td>
                   {/* Column-3 ===> Date */}
@@ -170,7 +216,9 @@ export default function TransactionsPage() {
                   </td>
                   {/* Column-4 ===> payment */}
                   <td className="text-muted-foreground table-cell p-4 text-center text-xs">
-                    {transaction.paymentMethod || "نامشخص"}
+                    {paymentMethodLabelMap[transaction.paymentMethod ?? ""] ??
+                      transaction.paymentMethod ??
+                      "نامشخص"}
                   </td>
                   {/* Column-5 ===> amount */}
                   <td className="p-4 text-center">
@@ -199,14 +247,27 @@ export default function TransactionsPage() {
                       {statusLabels[transaction.status]}
                     </span>
                   </td>
-                  {/* Column-7 ===> Edit Btn */}
+                  {/* Column-7 ===> Action Buttons */}
                   <td className="table-cell p-4 text-center">
-                    <button
-                      onClick={() => openEdit(transaction.id, transaction)}
-                      className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </button>
+                    <div className="flex items-center justify-center gap-2">
+                      {/* دکمه ویرایش */}
+                      <button
+                        onClick={() => openEdit(transaction.id, transaction)}
+                        className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
+                        title="ویرایش"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+
+                      {/* دکمه حذف */}
+                      <button
+                        onClick={() => handleDelete(transaction.id)}
+                        className="text-muted-foreground hover:bg-destructive hover:text-destructive-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
+                        title="حذف"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -215,7 +276,7 @@ export default function TransactionsPage() {
         </div>
       </div>
       {/* ------->>>------ 5 => Empty Table  -------<<<------ */}
-      {transactionsData.length === 0 && (
+      {transactions.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-full">
             <Search className="text-muted-foreground/50 h-8 w-8" />
@@ -230,17 +291,49 @@ export default function TransactionsPage() {
       )}
 
       {/* ------->>>------ 6 => Pagination  -------<<<------ */}
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">نمایش 1-10 از 50 تراکنش</p>
-        <div className="flex gap-2">
-          <button className="border-border hover:bg-accent rounded-lg border px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50">
-            قبلی
-          </button>
-          <button className="border-border hover:bg-accent rounded-lg border px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50">
-            بعدی
-          </button>
+      {transactions.length > 0 && (
+        <div className="flex items-center justify-between">
+          <p className="text-muted-foreground text-sm">
+            {total === 0
+              ? "هیچ تراکنشی ثبت نشده است"
+              : `نمایش ${startItem}–${endItem} از ${total} تراکنش`}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage(page - 1)}
+              disabled={page === 1}
+              className="border-border hover:bg-accent rounded-lg border px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:hover:bg-transparent"
+            >
+              قبلی
+            </button>
+            {/* 👇 دکمه‌های شماره صفحه */}
+            {Array.from({ length: pageCount }, (_, idx) => idx + 1).map(
+              (pageNumber) => (
+                <button
+                  key={pageNumber}
+                  onClick={() => setPage(pageNumber)}
+                  className={cn(
+                    "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    pageNumber === page
+                      ? "bg-primary text-white"
+                      : "border-border hover:bg-accent border",
+                  )}
+                >
+                  {pageNumber}
+                </button>
+              ),
+            )}
+            {/* 👆 دکمه‌های شماره صفحه */}
+            <button
+              onClick={() => setPage(page + 1)}
+              disabled={page === pageCount}
+              className="border-border hover:bg-accent rounded-lg border px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:hover:bg-transparent"
+            >
+              بعدی
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       <AddTransactionModal
         isOpen={isOpen}

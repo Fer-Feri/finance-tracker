@@ -108,3 +108,17 @@ export const PaymentMethodDataFormModal: PaymentMethodOptionForm[] = [
   { value: "bank_transfer", label: "انتقال بانکی", icon: Building2 },
   { value: "wallet", label: "کیف پول", icon: Smartphone },
 ];
+
+export const categoryLabelMap = CategoryDataOptionFormModal.reduce<
+  Record<string, string>
+>((acc, item) => {
+  acc[item.value] = item.label;
+  return acc;
+}, {});
+
+export const paymentMethodLabelMap = PaymentMethodDataFormModal.reduce<
+  Record<string, string>
+>((acc, item) => {
+  acc[item.value] = item.label;
+  return acc;
+}, {});

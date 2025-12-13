@@ -52,9 +52,10 @@ export function CurrencyInput({
       value={formatNumber(value)}
       onChange={handleChange}
       placeholder={placeholder}
-      className="border-border bg-background focus:border-primary focus:ring-primary w-full rounded-lg border px-3 py-2 text-sm focus:ring-1 focus:outline-none"
+      className="border-border bg-background focus:border-primary focus:ring-primary mt-2 w-full rounded-lg border px-3 py-2 text-sm focus:ring-1 focus:outline-none"
       dir="rtl"
       inputMode="numeric"
+      required
     />
   );
 }
