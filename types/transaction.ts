@@ -4,9 +4,9 @@ export type TransactionStatus = "pending" | "completed" | "failed";
 
 export interface Transaction {
   id: string;
-  description: string;
+  description?: string;
   category: string;
-  date: string; // ISO date string
+  date: string;
   amount: number;
   type: transactionType;
   status: TransactionStatus;

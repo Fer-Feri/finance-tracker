@@ -14,6 +14,7 @@ export default function AddTransactionModal({
   mode,
   onClose,
   selectedTransactionId,
+  selectedTransaction,
 }: AddTransactionModalProps) {
   // --------------------------------------------
   // --------------------------------------------
@@ -57,6 +58,7 @@ export default function AddTransactionModal({
                 mode={mode}
                 selectedTransactionId={selectedTransactionId}
                 onClose={onClose}
+                selectedTransaction={selectedTransaction}
               />
             </motion.div>
           </div>

@@ -1,3 +1,5 @@
+import { Transaction } from "./transaction";
+
 // نوع تراکنش (فقط درآمد و هزینه)
 export type TransactionTypeForm = "income" | "expense";
 
@@ -41,6 +43,7 @@ export interface AddTransactionModalProps {
   isOpen: boolean;
   mode: "add" | "edit";
   selectedTransactionId: string | null;
+  selectedTransaction: Transaction | null;
   // initialData?: TransactionFormData;
   onClose: () => void;
   // onSubmit: (data: TransactionFormData) => void;

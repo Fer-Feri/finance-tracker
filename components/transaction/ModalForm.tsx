@@ -1,143 +1,211 @@
+"use client";
+
+import { useState } from "react";
+
 import {
   CategoryDataOptionFormModal,
   PaymentMethodDataFormModal,
   TransactionDataTypeFormModal,
 } from "@/config/transaction-form-data";
-import { Calendar } from "lucide-react";
-import { useState } from "react";
 
-interface FormState {
-  description: string;
-  amount: number;
+import { useTransactionModalStore } from "@/store/transactionModal-store";
+import { Transaction } from "@/types/transaction";
+import { PersianDatePicker } from "../ui/persion-date-picker";
+import { getTodayJalali } from "@/utils/date/jalali";
+import { CurrencyInput } from "../ui/currency-input";
+
+// =================================================
+// Component Props
+// =================================================
+interface ModalFormProps {
+  mode: "add" | "edit";
+  selectedTransactionId: string | null;
+  selectedTransaction: Transaction | null;
+  onClose: () => void;
 }
 
+// =================================================
+// Internal Form State
+// =================================================
+interface FormState {
+  description: string;
+  category: string;
+  date: string;
+  amount: number;
+  type: "income" | "expense";
+  status: "pending" | "completed" | "failed";
+  paymentMethod: string;
+  notes: string;
+}
+
+// =================================================
+// Initialize Form State (Add / Edit)
+// =================================================
 function getInitialFormState(
   mode: "add" | "edit",
-  selectedTransactionId: string | null,
+  transaction: Transaction | null,
 ): FormState {
-  if (mode === "edit" && selectedTransactionId) {
+  if (mode === "edit" && transaction) {
     return {
-      description: `ویرایش تراکنش ${selectedTransactionId}`,
-      amount: 5000,
+      description: transaction.description ?? "",
+      category: transaction.category,
+      date: transaction.date,
+      amount: transaction.amount,
+      type: transaction.type,
+      status: transaction.status,
+      paymentMethod: transaction.paymentMethod ?? "card",
+      notes: "",
     };
   }
 
   return {
     description: "",
-    amount: 1000,
+    category: "",
+    date: getTodayJalali(),
+    amount: 0,
+    type: "expense",
+    status: "completed",
+    paymentMethod: "card",
+    notes: "",
   };
 }
 
-// ==================================================
+// =================================================
+// Modal Form Component
+// =================================================
 export default function ModalForm({
   mode,
   selectedTransactionId,
+  selectedTransaction,
   onClose,
-}: {
-  mode: "add" | "edit";
-  selectedTransactionId: string | null;
-  onClose: () => void;
-}) {
-  // ✅ useState با مقداردهی تنبل
-  const [formState, setFormState] = useState<FormState>(() =>
-    getInitialFormState(mode, selectedTransactionId),
+}: ModalFormProps) {
+  const updateTransaction = useTransactionModalStore(
+    (state) => state.updateTransaction,
   );
-  // =======================
+
+  const [formState, setFormState] = useState<FormState>(() =>
+    getInitialFormState(mode, selectedTransaction),
+  );
+
+  // =================================================
+  // Submit Handler (Local State Update Only)
+  // =================================================
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (mode === "edit" && selectedTransactionId) {
+      updateTransaction(selectedTransactionId, {
+        description: formState.description,
+        amount: formState.amount,
+        category: formState.category,
+        date: formState.date,
+        type: formState.type,
+        status: formState.status,
+        paymentMethod: formState.paymentMethod,
+      });
+
+      console.log("✅ Transaction Updated (Local State)");
+    }
+
+    onClose();
+  };
+
+  // =============================================================
+  // Filter categories based on selected transaction type
+  // =============================================================
+  const filteredCategories = CategoryDataOptionFormModal.filter((category) =>
+    category.types.includes(formState.type),
+  );
+
+  // =================================================
+  // JSX
+  // =================================================
   return (
-    <form className="space-y-6 p-6">
-      {/* نوع تراکنش */}
+    <form onSubmit={handleSubmit} className="space-y-6 p-6">
+      {/* ================= Transaction Type ================= */}
       <div className="space-y-3">
-        <label className="text-foreground block text-sm font-medium">
+        <label className="text-foreground text-sm font-medium">
           نوع تراکنش
         </label>
-        <div className="grid grid-cols-2 gap-3">
-          {TransactionDataTypeFormModal.map((type) => {
-            const Icon = type.icon;
-            // const isSelected = formData.type === type.value;
+
+        <div className="mt-2 grid grid-cols-2 gap-3">
+          {TransactionDataTypeFormModal.map((item) => {
+            const Icon = item.icon;
+            const isSelected = formState.type === item.value;
+
             return (
               <button
-                key={type.value}
+                key={item.value}
                 type="button"
-                // onClick={() => handleTypeChange(type.value)}
-                // className={cn(
-                //   `relative rounded-xl border-2 p-4 transition-all duration-300 ${
-                //     isSelected
-                //       ? `${type.bgClass} ${type.colorClass} border-current shadow-lg`
-                //       : "border-border hover:border-primary/50"
-                //   }`,
-                // )}
+                onClick={() =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    type: item.value,
+                    category: "", // Reset category when type changes
+                  }))
+                }
+                className={`rounded-xl border-2 p-4 transition-all duration-300 ${
+                  isSelected
+                    ? `${item.bgClass} ${item.colorClass} shadow-md`
+                    : "border-border hover:border-primary/40"
+                } `}
               >
-                <div className="flex items-center justify-center gap-3">
+                <div className="flex items-center justify-center gap-2">
                   <Icon className="h-5 w-5" />
-                  <span className="font-medium">{type.label}</span>
+                  <span className="font-medium">{item.label}</span>
                 </div>
               </button>
             );
           })}
         </div>
       </div>
-      {/* مبلغ */}
-      <div className="space-y-3">
-        <label
-          htmlFor="amount"
-          className="text-foreground block text-sm font-medium"
-        >
+
+      {/* ================= Amount ================= */}
+      <div className="space-y-2">
+        <label className="text-foreground text-sm font-medium">
           مبلغ (تومان)
         </label>
-        <div className="relative">
-          <input
-            id="amount"
-            type="number"
-            min="0"
-            step="1000"
-            value={formState.amount}
-            onChange={(e) =>
-              setFormState((prev) => ({
-                ...prev,
-                amount: Number(e.target.value),
-              }))
-            }
-            // onChange={(e) =>
-            //   handleInputChange("amount", Number(e.target.value))
-            // }
-            placeholder="1000"
-            required
-            className="bg-background border-border focus:ring-primary/50 text-foreground w-full rounded-xl border px-4 py-3 font-mono text-lg transition-all focus:ring-2 focus:outline-none"
-          />
-          <span className="text-muted-foreground absolute top-1/2 left-8 -translate-y-1/2 text-sm">
-            تومان
-          </span>
-        </div>
+
+        <CurrencyInput
+          value={formState.amount}
+          onChange={(value) =>
+            setFormState((prev) => ({
+              ...prev,
+              amount: value,
+            }))
+          }
+          placeholder="مثال: 15000000"
+        />
       </div>
-      {/* دسته‌بندی */}
-      <div className="">
-        <label
-          htmlFor="category"
-          className="text-foreground block text-sm font-medium"
-        >
-          دسته‌بندی
-        </label>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {CategoryDataOptionFormModal.map((category) => {
-            const Icon = category.icon;
-            // const isSelected = formData.category === category.value;
+
+      {/* ================= Category Selector ================= */}
+      <div className="space-y-3">
+        <label className="text-foreground text-sm font-medium">دسته‌بندی</label>
+
+        <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {filteredCategories.map((item) => {
+            const Icon = item.icon;
+            const isSelected = formState.category === item.value;
 
             return (
               <button
-                key={category.value}
+                key={item.value}
                 type="button"
-                // onClick={() =>
-                //   handleInputChange("category", category.value)
-                // }
-                // className={`relative rounded-lg border p-3 transition-all duration-300 ${
-                //   isSelected
-                //     ? "bg-primary/20 border-primary text-muted-foreground shadow-md"
-                //     : "border-border hover:border-primary/50"
-                // }`}
+                onClick={() =>
+                  setFormState((prev) => ({
+                    ...prev,
+                    category: item.value,
+                  }))
+                }
+                className={`rounded-lg border p-3 transition-all duration-300 ${
+                  isSelected
+                    ? "bg-primary/15 border-primary text-foreground shadow-sm"
+                    : "border-border hover:border-primary/40"
+                }`}
               >
                 <div className="flex flex-col items-center gap-2">
                   <Icon className="h-5 w-5" />
-                  <span className="text-sm">{category.label}</span>
+                  <span className="text-sm">{item.label}</span>
                 </div>
               </button>
             );
@@ -145,17 +213,14 @@ export default function ModalForm({
         </div>
       </div>
 
-      {/* توضیحات */}
+      {/* ================= Description ================= */}
       <div className="space-y-3">
-        <label
-          htmlFor="description"
-          className="text-foreground block text-sm font-medium"
-        >
+        <label htmlFor="description" className="text-sm font-medium">
           توضیحات
         </label>
+
         <input
           id="description"
-          type="text"
           value={formState.description}
           onChange={(e) =>
             setFormState((prev) => ({
@@ -163,105 +228,101 @@ export default function ModalForm({
               description: e.target.value,
             }))
           }
-          // value={formData.description}
-          // onChange={(e) =>
-          //   handleInputChange("description", e.target.value)
-          // }
-          className="bg-background border-border focus:ring-primary/50 text-foreground w-full rounded-xl border px-4 py-3 transition-all focus:ring-2 focus:outline-none"
-          placeholder="توضیحات تراکنش را وارد کنید..."
-          required
+          className="mt-2 w-full rounded-xl border px-4 py-3"
         />
       </div>
 
-      {/* تاریخ و روش پرداخت */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {/* تاریخ */}
-        <div className="space-y-3">
-          <label
-            htmlFor="date"
-            className="text-foreground block text-sm font-medium"
-          >
-            تاریخ
-          </label>
-          <div className="relative">
-            <input
-              id="date"
-              type="date"
-              // value={formData.date}
-              // onChange={(e) =>
-              //   handleInputChange("date", e.target.value)
-              // }
-              className="bg-background border-border focus:ring-primary/50 text-foreground w-full rounded-xl border px-4 py-3 transition-all focus:ring-2 focus:outline-none"
-              required
-            />
-            <Calendar className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2" />
+      {/* ================= Date ================= */}
+      <div className="space-y-2">
+        <label className="text-foreground text-sm font-medium">تاریخ</label>
+
+        <PersianDatePicker
+          value={formState.date}
+          onChange={(value) =>
+            setFormState((prev) => ({
+              ...prev,
+              date: value,
+            }))
+          }
+        />
+      </div>
+
+      {/* ================= Edit Only Fields ================= */}
+      {mode === "edit" && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {/* Payment Method Select */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium">روش پرداخت</label>
+            <select
+              value={formState.paymentMethod}
+              onChange={(e) =>
+                setFormState((prev) => ({
+                  ...prev,
+                  paymentMethod: e.target.value,
+                }))
+              }
+              /* className={...}*/
+              className="w-full rounded-xl border px-4 py-3"
+            >
+              {PaymentMethodDataFormModal.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Status Select */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium">وضعیت</label>
+            <select
+              value={formState.status}
+              onChange={(e) =>
+                setFormState((prev) => ({
+                  ...prev,
+                  status: e.target.value as FormState["status"],
+                }))
+              }
+              /* className={...}*/
+              className="w-full rounded-xl border px-4 py-3"
+            >
+              <option value="completed">تکمیل شده</option>
+              <option value="failed">ناموفق</option>
+              <option value="pending">در انتظار</option>
+            </select>
           </div>
         </div>
-        {/* روش پرداخت */}
-        <div className="space-y-3">
-          <label
-            htmlFor="paymentMethod"
-            className="text-foreground block text-sm font-medium"
-          >
-            روش پرداخت
-          </label>
-          <select
-            id="paymentMethod"
-            // value={formData.paymentMethod}
-            // onChange={(e) =>
-            //   handleInputChange(
-            //     "paymentMethod",
-            //     e.target.value as PaymentMethodForm,
-            //   )
-            // }
-            required
-            className="bg-background border-border focus:ring-primary/50 text-foreground w-full cursor-pointer rounded-xl border px-4 py-3 transition-all focus:ring-2 focus:outline-none"
-          >
-            {PaymentMethodDataFormModal.map((method) => (
-              <option key={method.value} value={method.value}>
-                {method.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        {/* {mode === "edit" && (
-                  <select
-                    value={formData.status}
-                    onChange={(value) => handleInputChange("status", value)}
-                  ></select>
-                )} */}
-      </div>
+      )}
 
-      {/* یادداشت (اختیاری) */}
+      {/* ================= Notes ================= */}
       <div className="space-y-3">
-        <label
-          htmlFor="notes"
-          className="text-foreground block text-sm font-medium"
-        >
-          یادداشت <span className="text-muted-foreground">(اختیاری)</span>
-        </label>
+        <label className="text-sm font-medium">یادداشت (اختیاری)</label>
         <textarea
-          id="notes"
           rows={3}
-          // value={formData.notes}
-          // onChange={(e) => handleInputChange("notes", e.target.value)}
-          className="bg-background border-border focus:ring-primary/50 text-foreground w-full resize-none rounded-xl border px-4 py-3 transition-all focus:ring-2 focus:outline-none"
-          placeholder="یادداشت‌های اضافی..."
+          value={formState.notes}
+          onChange={(e) =>
+            setFormState((prev) => ({
+              ...prev,
+              notes: e.target.value,
+            }))
+          }
+          className="w-full resize-none rounded-xl border px-4 py-3"
         />
       </div>
 
-      {/* دکمه‌های عملیات */}
-      <div className="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-2">
+      {/* ================= Actions ================= */}
+      <div className="grid grid-cols-2 gap-3 pt-4">
         <button
           type="submit"
-          className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/25 flex-1 rounded-xl px-6 py-3 font-medium shadow-lg transition-colors"
+          className="bg-primary rounded-xl px-6 py-3 text-white"
         >
-          {mode === "add" ? " افزودن تراکنش" : "ذخیره تغییرات"}
+          {mode === "add" ? "ثبت تراکنش" : "ذخیره تغییرات"}
         </button>
+
         <button
           type="button"
           onClick={onClose}
-          className="border-border bg-background/50 hover:bg-background text-foreground flex-1 rounded-xl border px-6 py-3 font-medium transition-colors"
+          className="rounded-xl border px-6 py-3"
         >
           انصراف
         </button>

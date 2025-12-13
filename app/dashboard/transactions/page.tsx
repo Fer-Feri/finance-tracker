@@ -17,8 +17,15 @@ import {
 } from "lucide-react";
 
 export default function TransactionsPage() {
-  const { isOpen, mode, openAdd, openEdit, onClose, selectedTransactionId } =
-    useTransactionModalStore();
+  const {
+    isOpen,
+    mode,
+    openAdd,
+    openEdit,
+    onClose,
+    selectedTransactionId,
+    selectedTransaction,
+  } = useTransactionModalStore();
   // ----------------------------------------
   const statusClasses: Record<TransactionStatus, string> = {
     completed: "bg-secondary text-white",
@@ -195,7 +202,7 @@ export default function TransactionsPage() {
                   {/* Column-7 ===> Edit Btn */}
                   <td className="table-cell p-4 text-center">
                     <button
-                      onClick={() => openEdit(transaction.id)}
+                      onClick={() => openEdit(transaction.id, transaction)}
                       className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
                     >
                       <MoreHorizontal className="h-4 w-4" />
@@ -240,6 +247,7 @@ export default function TransactionsPage() {
         mode={mode}
         onClose={onClose}
         selectedTransactionId={selectedTransactionId}
+        selectedTransaction={selectedTransaction}
       />
     </div>
   );
