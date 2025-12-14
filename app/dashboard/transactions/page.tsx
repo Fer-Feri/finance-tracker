@@ -148,26 +148,26 @@ export default function TransactionsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-border bg-muted/40 border-b">
-                <th className="text-foreground px-4 py-3.5 text-right font-semibold">
+              <tr className="border-border border-b">
+                <th className="text-foreground px-4 py-5 text-right font-semibold">
                   توضیحات تراکنش
                 </th>
-                <th className="text-foreground table-cell px-4 py-3.5 text-center font-semibold">
+                <th className="text-foreground table-cell px-4 py-5 text-center font-semibold">
                   دسته‌بندی
                 </th>
-                <th className="text-foreground table-cell px-4 py-3.5 text-center font-semibold">
+                <th className="text-foreground table-cell px-4 py-5 text-center font-semibold">
                   تاریخ
                 </th>
-                <th className="text-foreground table-cell px-4 py-3.5 text-center font-semibold">
+                <th className="text-foreground table-cell px-4 py-5 text-center font-semibold">
                   روش پرداخت
                 </th>
-                <th className="text-foreground px-4 py-3.5 text-center font-semibold">
+                <th className="text-foreground px-4 py-5 text-center font-semibold">
                   مبلغ
                 </th>
-                <th className="text-foreground table-cell px-4 py-3.5 text-center font-semibold">
+                <th className="text-foreground table-cell px-4 py-5 text-center font-semibold">
                   وضعیت
                 </th>
-                <th className="text-foreground table-cell px-4 py-3.5 text-center font-semibold">
+                <th className="text-foreground table-cell px-4 py-5 text-center font-semibold">
                   عملیات
                 </th>
               </tr>
@@ -176,7 +176,7 @@ export default function TransactionsPage() {
               {data.map((transaction) => (
                 <tr
                   key={transaction.id}
-                  className="group border-border hover:bg-muted/30 border-b transition-colors last:border-b-0"
+                  className="group border-border border-b transition-colors last:border-b-0"
                 >
                   {/* Column-1 ===> Description */}
                   <td className="p-4">

@@ -1,17 +1,18 @@
-// components/layout/main-layout-client.tsx
 "use client";
 
-import { useState } from "react";
 import Sidebar from "@/components/layout/sidebar/sidebar";
 import MobileSidebar from "@/components/layout/sidebar/mobile-sidebar";
 import DashboardHeader from "./header/header";
+import { usePathname } from "next/navigation";
+import { getPageTitle } from "@/config/page-titles";
 
 export default function MainLayoutClient({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // State برای باز/بسته بودن منوی موبایل
+  const pathname = usePathname();
+  const pageTitle = getPageTitle(pathname);
 
   return (
     <div className="bg-background flex min-h-screen">
@@ -23,7 +24,7 @@ export default function MainLayoutClient({
 
       {/* Main Content Area */}
       <main className="flex min-w-0 flex-auto flex-col transition-all duration-300 lg:mr-64">
-        <DashboardHeader title="داشبورد" />
+        <DashboardHeader title={pageTitle} />
 
         <div className="mx-auto w-full min-w-0 flex-auto p-6">{children}</div>
       </main>

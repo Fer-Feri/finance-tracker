@@ -55,26 +55,26 @@ export const mainItems: NavItem[] = [
     title: "گزارشات",
     href: "/dashboard/reports",
     icon: TrendingUp,
-    children: [
-      {
-        id: "reports-monthly",
-        title: "گزارش ماهانه",
-        href: "/dashboard/reports/monthly",
-        icon: CalendarRange,
-      },
-      {
-        id: "reports-yearly",
-        title: "گزارش سالانه",
-        href: "/dashboard/reports/yearly",
-        icon: CalendarCheck,
-      },
-      {
-        id: "reports-chart",
-        title: "نمودارها",
-        href: "/dashboard/reports/charts",
-        icon: BarChart3,
-      },
-    ],
+    // children: [
+    //   {
+    //     id: "reports-monthly",
+    //     title: "گزارش ماهانه",
+    //     href: "/dashboard/reports/monthly",
+    //     icon: CalendarRange,
+    //   },
+    //   {
+    //     id: "reports-yearly",
+    //     title: "گزارش سالانه",
+    //     href: "/dashboard/reports/yearly",
+    //     icon: CalendarCheck,
+    //   },
+    //   {
+    //     id: "reports-chart",
+    //     title: "نمودارها",
+    //     href: "/dashboard/reports/charts",
+    //     icon: BarChart3,
+    //   },
+    // ],
   },
 ];
 
