@@ -3,16 +3,12 @@
 import HeaderRight from "./headerRight";
 import HeaderLeft from "./headerLeft";
 import { UserProfile } from "@/types/user-profile";
-interface DashboardLayoutProps {
-  title?: string;
-}
 
-export default function DashboardHeader({
-  title = "داشبورد",
-}: DashboardLayoutProps) {
+export default function DashboardHeader({ title }: { title?: string }) {
   // ------------------------------------
   const user: UserProfile = {
     name: "Farshad Bahari",
+    email: "n3oPd@example.com",
   };
 
   return (

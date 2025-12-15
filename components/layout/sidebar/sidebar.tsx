@@ -1,6 +1,4 @@
-// components/sidebar.tsx
 "use client";
-
 import SidebarContent from "./sidebar-content";
 
 export default function Sidebar() {

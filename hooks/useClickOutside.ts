@@ -1,33 +1,23 @@
-import { useEffect, useRef } from "react";
+import { RefObject, useEffect } from "react";
 
-export function useClickOutside<T extends HTMLElement>(
+export function useClickOutside(
+  ref: RefObject<HTMLElement | null>,
   handler: () => void,
-  isOpen: boolean,
 ) {
-  const ref = useRef<T>(null);
-
   useEffect(() => {
-    // اگر منو بسته است، نیازی به لیسنر نیست
-    if (!isOpen) return;
+    const listener = (event: MouseEvent | TouchEvent) => {
+      // اگر منو نبود و کلیک داخل بود برگشت بزن
+      if (!ref.current || ref.current.contains(event.target as Node)) return;
 
-    const handleClickOutside = (event: MouseEvent) => {
-      // اگر روی خود المان یا فرزندانش کلیک نشده باشد
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        handler();
-      }
+      handler();
     };
 
-    // اضافه کردن لیسنر با کمی تأخیر (برای جلوگیری از تداخل با دکمه باز کننده)
-    // requestAnimationFrame یا setTimeout(0) کمک می‌کنه ایونتِ باز شدنِ منو، بلافاصله باعث بسته شدنش نشه
-    const timeoutId = setTimeout(() => {
-      document.addEventListener("mousedown", handleClickOutside);
-    }, 0);
+    document.addEventListener("mousedown", listener);
+    document.addEventListener("touchstart", listener);
 
     return () => {
-      clearTimeout(timeoutId);
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", listener);
+      document.removeEventListener("touchstart", listener);
     };
-  }, [isOpen, handler]);
-
-  return ref;
+  });
 }

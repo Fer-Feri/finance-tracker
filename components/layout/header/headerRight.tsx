@@ -6,12 +6,11 @@ interface HeaderRightProps {
 }
 
 export default function HeaderRight({ title }: HeaderRightProps) {
-  const { toggleMobileMenu } = useSidebarStore();
-
+  const { OpenMobile } = useSidebarStore();
   return (
     <div className="flex items-center gap-4">
       {/* Hamburger Menu برای موبایل */}
-      <button className="lg:hidden" onClick={toggleMobileMenu} aria-label="منو">
+      <button className="lg:hidden" onClick={OpenMobile} aria-label="منو">
         <Menu className="h-5 w-5" />
       </button>
 

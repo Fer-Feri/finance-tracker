@@ -1,31 +1,20 @@
 "use client";
 
-import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import SidebarContent from "./sidebar-content";
 import { useSidebarStore } from "@/store/useSidebarStore";
 
-export default function MobileSidebar() {
-  // ✅ اتصال به Zustand
-  const { isMobileOpen, closeMobileMenu } = useSidebarStore();
+interface MobileSidebarProps {
+  title?: string;
+}
 
-  // جلوگیری از اسکرول بادی
-  useEffect(() => {
-    if (isMobileOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isMobileOpen]);
-
+export default function MobileSidebar({}: MobileSidebarProps) {
+  const { closeMobile, isMobileOpen } = useSidebarStore();
   return (
     <>
       {/* Backdrop */}
       <div
-        onClick={closeMobileMenu}
+        onClick={closeMobile}
         className={cn(
           "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden",
           isMobileOpen ? "visible opacity-100" : "invisible opacity-0",

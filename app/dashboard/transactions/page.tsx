@@ -1,29 +1,48 @@
 "use client";
 
+// ============================================================
+// IMPORTS
+// ============================================================
+import { useEffect, useMemo, useState } from "react";
+import {
+  Plus,
+  Search,
+  SlidersHorizontal,
+  ArrowUpDown,
+  ArrowUpLeft,
+  ArrowDownRight,
+  Edit,
+  Trash2,
+} from "lucide-react";
+
+// Components
 import AddTransactionModal from "@/components/transaction/AddTransactionModal";
+
+// Store
+import { useTransactionModalStore } from "@/store/transactionModal-store";
+
+// Types
+import { TransactionStatus, transactionType } from "@/types/transaction";
+
+// Utils & Configs
 import { transactionsData } from "@/config/tranaction-data";
 import {
   categoryLabelMap,
   paymentMethodLabelMap,
 } from "@/config/transaction-form-data";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { SearchTransaction } from "@/lib/searchTransaction";
 import { cn } from "@/lib/utils";
-import { useTransactionModalStore } from "@/store/transactionModal-store";
-import { TransactionStatus, transactionType } from "@/types/transaction";
-import {
-  ArrowDownRight,
-  ArrowUpDown,
-  ArrowUpLeft,
-  Edit,
-  Plus,
-  Search,
-  SlidersHorizontal,
-  Trash2,
-} from "lucide-react";
-import { useEffect } from "react";
 
+// ============================================================
+// COMPONENT
+// ============================================================
 export default function TransactionsPage() {
+  // ============================================================
+  // STORE & STATE
+  // ============================================================
   const {
+    // Modal state
     isOpen,
     mode,
     openAdd,
@@ -31,9 +50,13 @@ export default function TransactionsPage() {
     onClose,
     selectedTransactionId,
     selectedTransaction,
+
+    // Transaction operations
     deleteTransaction,
     transactions,
+    setTransactions,
 
+    // Pagination
     page,
     pageSize,
     setPage,
@@ -41,61 +64,86 @@ export default function TransactionsPage() {
     totalTransactions,
   } = useTransactionModalStore();
 
-  // -------------------------------------------------------
-  const setTransactions = useTransactionModalStore(
-    (state) => state.setTransactions,
-  );
+  // Local search state
+  const [searchQuery, setSearchQuery] = useState("");
 
-  //چون فعلاً دیتابیس نداریم، باید داده‌های ثابت (transactionsData) را یک بار داخل کامپوننت صفحه به استور تزریق کنید.
+  // ============================================================
+  // EFFECTS
+  // ============================================================
+  // Initialize transactions from mock data if empty
   useEffect(() => {
     if (transactions.length === 0) {
       setTransactions(transactionsData);
     }
   }, [transactions.length, setTransactions]);
-  // ----------------------------------------
+
+  // Reset to page 1 when search query changes
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, setPage]);
+
+  // ============================================================
+  // COMPUTED VALUES
+  // ============================================================
+  // Filter transactions based on search query
+  const filteredTransactions = useMemo(() => {
+    return SearchTransaction(searchQuery, transactions);
+  }, [searchQuery, transactions]);
+
+  // Get paginated data (from filtered results if searching, otherwise all)
+  const displayedTransactions = useMemo(() => {
+    const dataToDisplay = searchQuery ? filteredTransactions : transactions;
+    const start = (page - 1) * pageSize;
+    return dataToDisplay.slice(start, start + pageSize);
+  }, [searchQuery, filteredTransactions, transactions, page, pageSize]);
+
+  // Calculate pagination info
+  const total = searchQuery ? filteredTransactions.length : totalTransactions();
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const startItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endItem = Math.min(page * pageSize, total);
+
+  // ============================================================
+  // STYLE MAPS
+  // ============================================================
   const statusClasses: Record<TransactionStatus, string> = {
     completed: "bg-secondary text-white",
     pending: "bg-muted-foreground text-white",
     failed: "bg-destructive text-white",
   };
 
-  // ----------------------------------------
   const statusLabels: Record<TransactionStatus, string> = {
     completed: "تکمیل شده",
     pending: "در انتظار",
     failed: "ناموفق",
   };
 
-  // ----------------------------------------
   const typeClasses: Record<transactionType, string> = {
     income: "bg-primary/10 text-primary",
     expense: "bg-destructive/10 text-destructive",
   };
 
-  // ------------------DELETE TRANSACTION------------------------
+  // ============================================================
+  // HANDLERS
+  // ============================================================
+  // Handle transaction deletion with confirmation
   const handleDelete = (id: string) => {
-    // Confirm قبل از حذف
     if (window.confirm("آیا از حذف این تراکنش اطمینان دارید؟")) {
       deleteTransaction(id);
       console.log(`✅ Transaction Deleted: ${id}`);
     }
   };
 
-  // ==============================================================
-  // =======================Pagination=============================
-  // ==============================================================
-  const data = paginatedTransactions();
-  const total = totalTransactions();
-  const pageCount = Math.max(1, Math.ceil(total / pageSize));
-
-  const startItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
-  const endItem = Math.min(page * pageSize, total);
-
+  // ============================================================
+  // RENDER
+  // ============================================================
   return (
     <div className="h-full space-y-8 p-2">
-      {/* ------->>>------ 1 => Header && Add transaction -------<<<------  */}
+      {/* ============================================================ */}
+      {/* HEADER SECTION */}
+      {/* ============================================================ */}
       <div className="flex flex-wrap justify-between gap-4">
-        {/*  title */}
+        {/* Page title */}
         <div className="space-y-1">
           <h1 className="text-foreground text-2xl font-bold tracking-tight">
             لیست تراکنش‌ها
@@ -104,7 +152,8 @@ export default function TransactionsPage() {
             مدیریت کامل ورودی‌ها و خروجی‌های مالی شما
           </p>
         </div>
-        {/* add transaction btn */}
+
+        {/* Add transaction button */}
         <button
           onClick={openAdd}
           className="group bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90 flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -113,29 +162,49 @@ export default function TransactionsPage() {
           <span>تراکنش جدید</span>
         </button>
       </div>
-      {/* ------->>>------ 2 => Seperator -------<<<------  */}
+
+      {/* Divider */}
       <div className="via-border h-px w-full bg-gradient-to-r from-transparent to-transparent" />
-      {/* ------->>>------ 3 => Search && Filter -------<<<------ */}
+
+      {/* ============================================================ */}
+      {/* SEARCH & FILTER SECTION */}
+      {/* ============================================================ */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        {/* Input Group */}
+        {/* Search input group */}
         <div className="border-border bg-card focus-within:border-primary/50 focus-within:ring-primary/10 relative flex w-full max-w-xl items-center rounded-2xl border p-1 shadow-sm transition-all focus-within:ring-4">
-          {/* icon search */}
+          {/* Search icon */}
           <div className="text-muted-foreground flex h-10 w-10 items-center justify-center">
             <Search className="h-5 w-5" />
           </div>
-          {/* input */}
+
+          {/* Input field */}
           <input
             type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="جستجو بر اساس توضیحات، دسته‌بندی و..."
             className="text-foreground placeholder:text-muted-foreground/70 flex-1 bg-transparent px-2 py-2 text-sm focus:outline-none"
           />
-          {/* sticky filter */}
+
+          {/* Clear button (shown when searching) */}
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="text-muted-foreground hover:text-foreground px-2"
+              title="پاک کردن جستجو"
+            >
+              X
+            </button>
+          )}
+
+          {/* Filter button */}
           <button className="bg-secondary/80 text-secondary-foreground hover:bg-secondary flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors">
             <SlidersHorizontal className="h-4 w-4" />
             <span>فیلترها</span>
           </button>
         </div>
-        {/* ------->>>------ 4 => Sort Filter -------<<<------ */}
+
+        {/* Sort button */}
         <div className="flex items-center gap-2">
           <button className="border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors">
             <ArrowUpDown className="h-4 w-4" />
@@ -143,10 +212,26 @@ export default function TransactionsPage() {
           </button>
         </div>
       </div>
-      {/* ------->>>------ 4 => Transactions Table  -------<<<------ */}
+
+      {/* ============================================================ */}
+      {/* SEARCH RESULTS INFO */}
+      {/* ============================================================ */}
+      {searchQuery && (
+        <div className="bg-muted/50 rounded-lg px-4 py-2 text-sm">
+          <span className="text-muted-foreground">نتایج جستجو برای </span>
+          <span className="text-foreground font-medium">"{searchQuery}"</span>
+          <span className="text-muted-foreground"> • </span>
+          <span className="text-primary font-medium">{total} نتیجه</span>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* TRANSACTIONS TABLE */}
+      {/* ============================================================ */}
       <div className="border-border bg-card w-full rounded-xl shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
+            {/* Table header */}
             <thead>
               <tr className="border-border border-b">
                 <th className="text-foreground px-4 py-5 text-right font-semibold">
@@ -172,15 +257,18 @@ export default function TransactionsPage() {
                 </th>
               </tr>
             </thead>
+
+            {/* Table body */}
             <tbody>
-              {data.map((transaction) => (
+              {displayedTransactions.map((transaction) => (
                 <tr
                   key={transaction.id}
                   className="group border-border border-b transition-colors last:border-b-0"
                 >
-                  {/* Column-1 ===> Description */}
+                  {/* Column 1: Description */}
                   <td className="p-4">
                     <div className="flex items-center gap-3">
+                      {/* Transaction type icon */}
                       <div
                         className={cn(
                           "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all",
@@ -193,6 +281,8 @@ export default function TransactionsPage() {
                           <ArrowDownRight className="h-4 w-4" />
                         )}
                       </div>
+
+                      {/* Description text */}
                       <div className="min-w-0 flex-1">
                         <p className="text-foreground truncate text-sm font-medium">
                           {transaction.description}
@@ -203,24 +293,28 @@ export default function TransactionsPage() {
                       </div>
                     </div>
                   </td>
-                  {/* Column-2 ===> Category */}
+
+                  {/* Column 2: Category */}
                   <td className="table-cell p-4 text-center">
                     <span className="bg-secondary/50 text-secondary-foreground inline-block rounded-lg px-3 py-1 text-xs font-medium">
                       {categoryLabelMap[transaction.category] ??
                         transaction.category}
                     </span>
                   </td>
-                  {/* Column-3 ===> Date */}
+
+                  {/* Column 3: Date */}
                   <td className="text-muted-foreground table-cell px-4 py-4 text-center text-xs font-medium tabular-nums">
                     {transaction.date}
                   </td>
-                  {/* Column-4 ===> payment */}
+
+                  {/* Column 4: Payment method */}
                   <td className="text-muted-foreground table-cell p-4 text-center text-xs">
                     {paymentMethodLabelMap[transaction.paymentMethod ?? ""] ??
                       transaction.paymentMethod ??
                       "نامشخص"}
                   </td>
-                  {/* Column-5 ===> amount */}
+
+                  {/* Column 5: Amount */}
                   <td className="p-4 text-center">
                     <div
                       className={cn(
@@ -236,7 +330,8 @@ export default function TransactionsPage() {
                       </span>
                     </div>
                   </td>
-                  {/* Column-6 ===> status */}
+
+                  {/* Column 6: Status */}
                   <td className="table-cell p-4 text-center">
                     <span
                       className={cn(
@@ -247,10 +342,11 @@ export default function TransactionsPage() {
                       {statusLabels[transaction.status]}
                     </span>
                   </td>
-                  {/* Column-7 ===> Action Buttons */}
+
+                  {/* Column 7: Action buttons */}
                   <td className="table-cell p-4 text-center">
                     <div className="flex items-center justify-center gap-2">
-                      {/* دکمه ویرایش */}
+                      {/* Edit button */}
                       <button
                         onClick={() => openEdit(transaction.id, transaction)}
                         className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
@@ -259,7 +355,7 @@ export default function TransactionsPage() {
                         <Edit className="h-4 w-4" />
                       </button>
 
-                      {/* دکمه حذف */}
+                      {/* Delete button */}
                       <button
                         onClick={() => handleDelete(transaction.id)}
                         className="text-muted-foreground hover:bg-destructive hover:text-destructive-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
@@ -275,8 +371,11 @@ export default function TransactionsPage() {
           </table>
         </div>
       </div>
-      {/* ------->>>------ 5 => Empty Table  -------<<<------ */}
-      {transactions.length === 0 && (
+
+      {/* ============================================================ */}
+      {/* EMPTY STATE */}
+      {/* ============================================================ */}
+      {total === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-full">
             <Search className="text-muted-foreground/50 h-8 w-8" />
@@ -285,20 +384,26 @@ export default function TransactionsPage() {
             نتیجه‌ای یافت نشد
           </h3>
           <p className="text-muted-foreground mt-2 max-w-xs text-sm">
-            با کلمات کلیدی دیگری جستجو کنید یا فیلترها را تغییر دهید.
+            {searchQuery
+              ? "با کلمات کلیدی دیگری جستجو کنید یا فیلترها را تغییر دهید."
+              : "هیچ تراکنشی ثبت نشده است."}
           </p>
         </div>
       )}
 
-      {/* ------->>>------ 6 => Pagination  -------<<<------ */}
-      {transactions.length > 0 && (
+      {/* ============================================================ */}
+      {/* PAGINATION */}
+      {/* ============================================================ */}
+      {total > 0 && (
         <div className="flex items-center justify-between">
+          {/* Pagination info */}
           <p className="text-muted-foreground text-sm">
-            {total === 0
-              ? "هیچ تراکنشی ثبت نشده است"
-              : `نمایش ${startItem}–${endItem} از ${total} تراکنش`}
+            نمایش {startItem}–{endItem} از {total} تراکنش
           </p>
+
+          {/* Pagination controls */}
           <div className="flex gap-2">
+            {/* Previous button */}
             <button
               onClick={() => setPage(page - 1)}
               disabled={page === 1}
@@ -306,7 +411,8 @@ export default function TransactionsPage() {
             >
               قبلی
             </button>
-            {/* 👇 دکمه‌های شماره صفحه */}
+
+            {/* Page number buttons */}
             {Array.from({ length: pageCount }, (_, idx) => idx + 1).map(
               (pageNumber) => (
                 <button
@@ -323,7 +429,8 @@ export default function TransactionsPage() {
                 </button>
               ),
             )}
-            {/* 👆 دکمه‌های شماره صفحه */}
+
+            {/* Next button */}
             <button
               onClick={() => setPage(page + 1)}
               disabled={page === pageCount}
@@ -335,6 +442,9 @@ export default function TransactionsPage() {
         </div>
       )}
 
+      {/* ============================================================ */}
+      {/* MODAL */}
+      {/* ============================================================ */}
       <AddTransactionModal
         isOpen={isOpen}
         mode={mode}

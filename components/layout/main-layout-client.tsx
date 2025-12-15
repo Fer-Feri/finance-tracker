@@ -12,6 +12,7 @@ export default function MainLayoutClient({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+
   const pageTitle = getPageTitle(pathname);
 
   return (
