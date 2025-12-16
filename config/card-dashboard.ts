@@ -1,5 +1,16 @@
-import { CardDashboardProps } from "@/types/card-dashboard";
+// config/card-dashboard.ts
+import { LucideIcon } from "lucide-react";
 import { TrendingUp, Wallet, TrendingDown, PiggyBank } from "lucide-react";
+
+export interface CardDashboardProps {
+  id: string;
+  title: string;
+  value: string;
+  change?: string;
+  isPositive?: boolean;
+  icon: LucideIcon;
+  variant: "primary" | "secondary" | "destructive" | "teal"; // ✅ Variant system
+}
 
 export const CardDashboardItems: CardDashboardProps[] = [
   {
@@ -9,8 +20,7 @@ export const CardDashboardItems: CardDashboardProps[] = [
     change: "+12%",
     isPositive: true,
     icon: Wallet,
-    iconColor: "text-primary",
-    bgColor: "bg-primary/10",
+    variant: "primary",
   },
   {
     id: "monthly-income",
@@ -19,8 +29,7 @@ export const CardDashboardItems: CardDashboardProps[] = [
     change: "+8%",
     isPositive: true,
     icon: TrendingUp,
-    iconColor: "text-emerald-500",
-    bgColor: "bg-emerald-500/10",
+    variant: "secondary",
   },
   {
     id: "monthly-expense",
@@ -29,8 +38,7 @@ export const CardDashboardItems: CardDashboardProps[] = [
     change: "-5%",
     isPositive: false,
     icon: TrendingDown,
-    iconColor: "text-destructive", // ✅ رنگ قرمز نئونی
-    bgColor: "bg-destructive/10",
+    variant: "destructive",
   },
   {
     id: "savings",
@@ -39,7 +47,6 @@ export const CardDashboardItems: CardDashboardProps[] = [
     change: "+2%",
     isPositive: true,
     icon: PiggyBank,
-    iconColor: "text-secondary",
-    bgColor: "bg-secondary/10",
+    variant: "teal",
   },
 ];

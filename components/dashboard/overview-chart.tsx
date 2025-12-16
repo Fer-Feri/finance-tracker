@@ -1,18 +1,16 @@
 "use client";
 
-import { overviewChartProps } from "@/types/overview-chart";
 import {
-  Bar,
-  CartesianGrid,
-  ComposedChart,
-  Line,
-  ResponsiveContainer,
-  Tooltip,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
 } from "recharts";
-import { CustomTooltip } from "../ui/TooltipContent";
-import { formatCurrency } from "@/lib/formatCurrency";
+
+import { overviewChartProps } from "@/types/overview-chart";
 
 const data: overviewChartProps[] = [
   { name: "فروردین", income: 3200000, expense: 1800000 },
@@ -22,6 +20,28 @@ const data: overviewChartProps[] = [
   { name: "مرداد", income: 5200000, expense: 3100000 },
   { name: "شهریور", income: 4800000, expense: 3400000 },
 ];
+
+// ✅ Custom Tooltip (اختیاری - برای نمایش بهتر)
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="border-border bg-card rounded-lg border p-3 shadow-lg">
+        <p className="text-foreground mb-2 text-sm font-semibold">
+          {payload[0].payload.name}
+        </p>
+        {payload.map((entry: any, index: number) => (
+          <p key={index} className="text-xs" style={{ color: entry.color }}>
+            {entry.name === "income" ? "درآمد" : "هزینه"}:{" "}
+            <span className="font-bold">
+              {entry.value.toLocaleString("fa-IR")} ت
+            </span>
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function OverviewChart() {
   return (
@@ -34,99 +54,107 @@ export default function OverviewChart() {
 
         <div className="flex items-center gap-3">
           {/* درآمد */}
-          <span
-            className="rounded-md px-3 py-1.5 text-sm font-medium"
-            style={{
-              backgroundColor: "var(--primary)",
-              color: "var(--primary-foreground)",
-            }}
-          >
-            درآمد
-          </span>
+          <div className="flex items-center gap-2">
+            <div className="bg-primary h-3 w-3 rounded-full" />
+            <span className="text-muted-foreground text-sm font-medium">
+              درآمد
+            </span>
+          </div>
 
           {/* هزینه */}
-          <span
-            className="rounded-md px-3 py-1.5 text-sm font-medium"
-            style={{
-              backgroundColor: "var(--destructive)",
-              color: "var(--destructive-foreground)",
-            }}
-          >
-            هزینه
-          </span>
+          <div className="flex items-center gap-2">
+            <div className="bg-destructive h-3 w-3 rounded-full" />
+            <span className="text-muted-foreground text-sm font-medium">
+              هزینه
+            </span>
+          </div>
         </div>
       </div>
 
       {/* CHART */}
-      <div className="h-80 w-full" dir="rtl">
+      <div className="h-80 w-full" dir="ltr">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart
+          <AreaChart
             data={data}
-            margin={{ top: 20, right: 15, left: 0, bottom: 0 }}
+            margin={{
+              top: 10,
+              right: 10,
+              left: 0,
+              bottom: 0,
+            }}
           >
-            {/* خطوط پس‌زمینه کم‌رنگ */}
+            <defs>
+              {/* Gradient برای درآمد */}
+              <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset="5%"
+                  stopColor="var(--chart-1)"
+                  stopOpacity={0.8}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="var(--chart-1)"
+                  stopOpacity={0.1}
+                />
+              </linearGradient>
+
+              {/* Gradient برای هزینه */}
+              <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset="5%"
+                  stopColor="var(--chart-4)"
+                  stopOpacity={0.8}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="var(--chart-4)"
+                  stopOpacity={0.1}
+                />
+              </linearGradient>
+            </defs>
+
             <CartesianGrid
-              stroke="rgba(255,255,255,0.08)"
               strokeDasharray="3 3"
-              vertical={false}
+              stroke="hsl(var(--border))"
+              opacity={0.3}
             />
 
-            {/* محور افقی */}
             <XAxis
               dataKey="name"
-              tickMargin={10}
-              tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
-              // axisLine={false}
+              stroke="var(--muted-foreground)"
+              fontSize={12}
               tickLine={false}
-            />
-
-            {/* محور عمودی */}
-            <YAxis
-              tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
               axisLine={false}
+            />
+
+            <YAxis
+              stroke="var(--muted-foreground)"
+              fontSize={12}
               tickLine={false}
-              tickFormatter={formatCurrency}
+              axisLine={false}
+              tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
             />
 
-            {/* Tooltip سفارشی شیشه‌ای / نئونی */}
-            {/* <Tooltip
-              contentStyle={{
-                background: "var(--chart-3)",
-                backdropFilter: "blur(10px)",
-                borderRadius: "12px",
-                border: "1px solid rgba(255,255,255,0.1)",
-                direction: "rtl",
-                textAlign: "right",
-              }}
-              labelStyle={{ color: "var(--foreground)", fontWeight: 600 }}
-              itemStyle={{ color: "var(--foreground)" }}
-              formatter={(value: number) => [formatCurrency(value), "ت"]}
-            /> */}
-            <Tooltip
-              cursor={{ fill: "hsl(var(--accent) / 0.2)" }} // افکت هاور روی ستون‌ها
-              content={<CustomTooltip />}
-            />
+            <Tooltip content={<CustomTooltip />} />
 
-            {/* BAR درآمد — رنگ: primary */}
-            <Bar
+            {/* Area برای درآمد */}
+            <Area
+              type="monotone"
               dataKey="income"
-              name="درآمد"
-              barSize={26}
-              radius={[6, 6, 6, 6]}
+              stroke="var(--chart-1)"
               fill="var(--chart-1)"
+              activeDot={{ r: 6 }}
             />
 
-            {/* LINE هزینه — destructive (قرمز نئونی) */}
-            <Line
+            {/* Area برای هزینه */}
+            <Area
               type="monotone"
               dataKey="expense"
-              name="هزینه"
               stroke="var(--chart-4)"
-              strokeWidth={3}
-              dot={{ r: 4, strokeWidth: 3, fill: "var(--chart-4)" }}
-              activeDot={{ r: 6, stroke: "var(--chart-2)", strokeWidth: 2 }}
+              fill="var(--chart-4)"
+              activeDot={{ r: 6 }}
             />
-          </ComposedChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </div>
