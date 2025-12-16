@@ -1,15 +1,17 @@
 import { useNotificationStore } from "@/store/useNotificationStore";
 import NotificationMenu from "./notificationMenu";
 import { Bell } from "lucide-react";
+import { useState } from "react";
 
 export default function Notification() {
-  const { toggleMenu, isMenuOpen, unreadCount } = useNotificationStore();
+  const [isOpenNotification, setIsOpenNotification] = useState(false);
+  const { unreadCount } = useNotificationStore();
 
   return (
     <div className="relative">
       <button
         type="button"
-        onClick={toggleMenu}
+        onClick={() => setIsOpenNotification(!isOpenNotification)}
         className="group text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring relative inline-flex h-9 w-9 items-center justify-center rounded-md transition-all duration-200 focus-visible:ring-1 focus-visible:outline-none"
       >
         <Bell className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
@@ -24,7 +26,12 @@ export default function Notification() {
       </button>
 
       {/* ✅ منو بیرون از button */}
-      {isMenuOpen && <NotificationMenu />}
+      {isOpenNotification && (
+        <NotificationMenu
+          isOpenNotification={isOpenNotification}
+          setIsOpenNotification={setIsOpenNotification}
+        />
+      )}
     </div>
   );
 }
