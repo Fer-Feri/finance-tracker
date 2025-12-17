@@ -5,7 +5,7 @@ import { TrendingUp, Wallet, TrendingDown, PiggyBank } from "lucide-react";
 export interface CardDashboardProps {
   id: string;
   title: string;
-  value: string;
+  value: number;
   change?: string;
   isPositive?: boolean;
   icon: LucideIcon;
@@ -16,7 +16,7 @@ export const CardDashboardItems: CardDashboardProps[] = [
   {
     id: "total-balance",
     title: "موجودی کل",
-    value: "33,000,000 ت",
+    value: 33000000,
     change: "+12%",
     isPositive: true,
     icon: Wallet,
@@ -25,7 +25,7 @@ export const CardDashboardItems: CardDashboardProps[] = [
   {
     id: "monthly-income",
     title: "درآمد ماهانه",
-    value: "45,000,000 ت",
+    value: 45000000,
     change: "+8%",
     isPositive: true,
     icon: TrendingUp,
@@ -34,7 +34,7 @@ export const CardDashboardItems: CardDashboardProps[] = [
   {
     id: "monthly-expense",
     title: "هزینه ماهانه",
-    value: "12,000,000 ت",
+    value: 12000000,
     change: "-5%",
     isPositive: false,
     icon: TrendingDown,
@@ -43,7 +43,7 @@ export const CardDashboardItems: CardDashboardProps[] = [
   {
     id: "savings",
     title: "پس‌انداز",
-    value: "21,000,000 ت",
+    value: 21000000,
     change: "+2%",
     isPositive: true,
     icon: PiggyBank,

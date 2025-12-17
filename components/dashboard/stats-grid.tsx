@@ -89,7 +89,7 @@ export default function StatsGrid() {
               {/* Value */}
               <div className="mb-4 space-y-2">
                 <h3 className="text-foreground text-3xl font-bold tracking-tight">
-                  {item.value}
+                  {item.value.toLocaleString("fa-IR")} ت
                 </h3>
               </div>
 

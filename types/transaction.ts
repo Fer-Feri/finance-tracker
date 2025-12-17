@@ -1,4 +1,4 @@
-export type transactionType = "income" | "expense";
+export type TransactionType = "income" | "expense";
 
 export type TransactionStatus = "pending" | "completed" | "failed";
 
@@ -8,7 +8,7 @@ export interface Transaction {
   category: string;
   date: string;
   amount: number;
-  type: transactionType;
+  type: TransactionType;
   status: TransactionStatus;
   paymentMethod?: string;
 }

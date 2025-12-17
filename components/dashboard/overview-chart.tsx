@@ -22,14 +22,28 @@ const data: overviewChartProps[] = [
 ];
 
 // ✅ Custom Tooltip (اختیاری - برای نمایش بهتر)
-const CustomTooltip = ({ active, payload }: any) => {
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    name: string;
+    value: number;
+    color: string;
+    payload: {
+      name: string;
+      income: number;
+      expense: number;
+    };
+  }>;
+}
+
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="border-border bg-card rounded-lg border p-3 shadow-lg">
         <p className="text-foreground mb-2 text-sm font-semibold">
           {payload[0].payload.name}
         </p>
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry, index) => (
           <p key={index} className="text-xs" style={{ color: entry.color }}>
             {entry.name === "income" ? "درآمد" : "هزینه"}:{" "}
             <span className="font-bold">
