@@ -18,32 +18,74 @@ import { cn } from "@/lib/utils";
 import { transactionsData } from "@/config/tranaction-data";
 import { TransactionStatus, TransactionType } from "@/types/transaction";
 import { useTransactionStore } from "@/store/transactionStore";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 // ============================================================
 // COMPONENT DEFINITION
 // ============================================================
 export default function TransactionsPage() {
+  const [searchValue, setSearchValue] = useState<string>("");
+
   const {
     transactions,
-    getPageInfo,
-    getPaginatedTransactions,
+    itemPerPage,
     setTransactions,
+    currentPage,
     setPage,
     nextPage,
     prevPage,
   } = useTransactionStore();
 
-  const { currentPage, totalPages, totalItems, startItem, endItem } =
-    getPageInfo();
+  // ============================================================
+  // 1️⃣ فیلتر
+  // ============================================================
+  const filteredTransactions = useMemo(() => {
+    if (!searchValue.trim()) return transactions;
 
-  // ================================ Fake Data================================
+    const lowerSearchValue = searchValue.trim().toLowerCase();
 
+    return transactions.filter((transaction) => {
+      const descriptionMatch = transaction.description
+        ?.toLowerCase()
+        .includes(lowerSearchValue);
+      const categoryMatch = transaction.category
+        ?.toLowerCase()
+        .includes(lowerSearchValue);
+
+      return descriptionMatch || categoryMatch;
+    });
+  }, [searchValue, transactions]);
+
+  // ============================================================
+  // 2️⃣ محاسبات Pagination (بر اساس فیلتر شده‌ها)
+  // ============================================================
+  const totalItems = filteredTransactions.length;
+  const totalPages = Math.ceil(totalItems / itemPerPage) || 1;
+  const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemPerPage + 1;
+  const endItem = Math.min(currentPage * itemPerPage, totalItems);
+
+  // ============================================================
+  // 3️⃣ داده‌های صفحه فعلی
+  // ============================================================
+  const paginatedData = filteredTransactions.slice(
+    (currentPage - 1) * itemPerPage,
+    currentPage * itemPerPage,
+  );
+
+  // ============================================================
+  // 4️⃣ Reset صفحه بعد از سرچ
+  // ============================================================
+  useEffect(() => {
+    setPage(1);
+  }, [searchValue, setPage]);
+
+  // ============================================================
+  // 5️⃣ لود داده موقت
+  // ============================================================
   useEffect(() => {
     if (transactions.length === 0) setTransactions(transactionsData);
   }, [transactions.length, setTransactions]);
 
-  const paginatedTransactions = getPaginatedTransactions();
   // ======================Render Button Pagination======================================
   const renderPageNumbers = () => {
     const pages = [];
@@ -65,7 +107,8 @@ export default function TransactionsPage() {
     }
     return pages;
   };
-  // ============================================================
+
+  // =======================CLASSES & LABELS=====================================================
   const statusClasses: Record<TransactionStatus, string> = {
     completed: "bg-secondary text-white",
     pending: "bg-muted-foreground text-white",
@@ -114,13 +157,22 @@ export default function TransactionsPage() {
           <div className="text-muted-foreground flex h-10 w-10 items-center justify-center">
             <Search className="h-5 w-5" />
           </div>
-
           <input
             type="text"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
             placeholder="جستجو بر اساس توضیحات، دسته‌بندی و..."
-            disabled
             className="text-foreground placeholder:text-muted-foreground/70 flex-1 bg-transparent px-2 py-2 text-sm focus:outline-none"
           />
+
+          {searchValue && (
+            <span
+              className="text-primary/70 ml-3"
+              onClick={() => setSearchValue("")}
+            >
+              X
+            </span>
+          )}
 
           <button
             disabled
@@ -167,7 +219,7 @@ export default function TransactionsPage() {
             <tbody>
               {/* ---------- EMPTY UI ROW ---------- */}
 
-              {paginatedTransactions.map((transaction) => {
+              {paginatedData.map((transaction) => {
                 return (
                   <tr key={transaction.id} className="border-border border-b">
                     {/* =============Description==================== */}
@@ -269,12 +321,12 @@ export default function TransactionsPage() {
       {/* ============================================================ */}
       {/* EMPTY STATE */}
       {/* ============================================================ */}
-      {transactionsData.length === 0 && (
+      {filteredTransactions.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-full">
-            <Search className="text-muted-foreground/50 h-8 w-8" />
+            <Search className="text-accent h-8 w-8" />
           </div>
-          <h3 className="text-foreground mt-4 text-lg font-semibold">
+          <h3 className="text-destructive mt-4 text-lg font-semibold">
             نتیجه‌ای یافت نشد
           </h3>
         </div>
