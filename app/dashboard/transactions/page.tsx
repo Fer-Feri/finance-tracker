@@ -1,8 +1,5 @@
 "use client";
 
-// ============================================================
-// IMPORTS (UI ONLY)
-// ============================================================
 import {
   Plus,
   Search,
@@ -16,77 +13,68 @@ import {
 
 import { cn } from "@/lib/utils";
 import { transactionsData } from "@/config/tranaction-data";
-import { TransactionStatus, TransactionType } from "@/types/transaction";
+import { TransactionStatus } from "@/types/transaction";
 import { useTransactionStore } from "@/store/transactionStore";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useClickOutside } from "@/hooks/useClickOutside";
 
 // ============================================================
-// COMPONENT DEFINITION
+// CONSTANTS
+// ============================================================
+const dateRangeItems: {
+  id: "all" | "today" | "week" | "month";
+  label: string;
+}[] = [
+  { id: "all", label: "همه" },
+  { id: "today", label: "امروز" },
+  { id: "week", label: "این هفته" },
+  { id: "month", label: "این ماه" },
+];
+
+// ✅ تعریف صحیح آیتم‌های وضعیت با تایپ
+const statusItems: { id: TransactionStatus; label: string }[] = [
+  { id: "completed", label: "تکمیل شده" },
+  { id: "pending", label: "در انتظار" },
+  { id: "failed", label: "ناموفق" },
+];
+
+// ============================================================
+// COMPONENT
 // ============================================================
 export default function TransactionsPage() {
-  const [searchValue, setSearchValue] = useState<string>("");
+  const [isMenuFilterOpen, setIsMenuFilterOpen] = useState<boolean>(false);
+  const menuFilterRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(menuFilterRef, () => setIsMenuFilterOpen(false));
 
   const {
-    transactions,
-    itemPerPage,
     setTransactions,
+    searchValue,
+    setSearchValue,
+    filters,
+    setFilters,
+    resetFilters,
     currentPage,
     setPage,
     nextPage,
     prevPage,
+    getFilteredTransactions,
+    getPageInfo,
+    itemPerPage,
   } = useTransactionStore();
 
-  // ============================================================
-  // 1️⃣ فیلتر
-  // ============================================================
-  const filteredTransactions = useMemo(() => {
-    if (!searchValue.trim()) return transactions;
+  const filteredTransactions = getFilteredTransactions();
+  const { totalPages, startItem, endItem, totalItems } = getPageInfo();
 
-    const lowerSearchValue = searchValue.trim().toLowerCase();
-
-    return transactions.filter((transaction) => {
-      const descriptionMatch = transaction.description
-        ?.toLowerCase()
-        .includes(lowerSearchValue);
-      const categoryMatch = transaction.category
-        ?.toLowerCase()
-        .includes(lowerSearchValue);
-
-      return descriptionMatch || categoryMatch;
-    });
-  }, [searchValue, transactions]);
-
-  // ============================================================
-  // 2️⃣ محاسبات Pagination (بر اساس فیلتر شده‌ها)
-  // ============================================================
-  const totalItems = filteredTransactions.length;
-  const totalPages = Math.ceil(totalItems / itemPerPage) || 1;
-  const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemPerPage + 1;
-  const endItem = Math.min(currentPage * itemPerPage, totalItems);
-
-  // ============================================================
-  // 3️⃣ داده‌های صفحه فعلی
-  // ============================================================
   const paginatedData = filteredTransactions.slice(
     (currentPage - 1) * itemPerPage,
     currentPage * itemPerPage,
   );
 
-  // ============================================================
-  // 4️⃣ Reset صفحه بعد از سرچ
-  // ============================================================
   useEffect(() => {
-    setPage(1);
-  }, [searchValue, setPage]);
+    setTransactions(transactionsData);
+  }, [setTransactions]);
 
-  // ============================================================
-  // 5️⃣ لود داده موقت
-  // ============================================================
-  useEffect(() => {
-    if (transactions.length === 0) setTransactions(transactionsData);
-  }, [transactions.length, setTransactions]);
-
-  // ======================Render Button Pagination======================================
   const renderPageNumbers = () => {
     const pages = [];
     for (let i = 1; i <= totalPages; i++) {
@@ -108,7 +96,6 @@ export default function TransactionsPage() {
     return pages;
   };
 
-  // =======================CLASSES & LABELS=====================================================
   const statusClasses: Record<TransactionStatus, string> = {
     completed: "bg-secondary text-white",
     pending: "bg-muted-foreground text-white",
@@ -121,16 +108,9 @@ export default function TransactionsPage() {
     failed: "ناموفق",
   };
 
-  const typeClasses: Record<TransactionType, string> = {
-    income: "bg-primary/10 text-primary",
-    expense: "bg-destructive/10 text-destructive",
-  };
-
   return (
     <div className="h-full space-y-8 p-2">
-      {/* ============================================================ */}
       {/* HEADER */}
-      {/* ============================================================ */}
       <div className="flex flex-wrap justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-foreground text-2xl font-bold tracking-tight">
@@ -140,18 +120,11 @@ export default function TransactionsPage() {
             مدیریت کامل ورودی‌ها و خروجی‌های مالی شما
           </p>
         </div>
-
-        <button className="group bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90 flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]">
-          <Plus className="h-5 w-5 transition-transform group-hover:rotate-90" />
-          <span>تراکنش جدید</span>
-        </button>
       </div>
 
       <div className="via-border h-px w-full bg-gradient-to-r from-transparent to-transparent" />
 
-      {/* ============================================================ */}
-      {/* SEARCH & FILTER (UI ONLY) */}
-      {/* ============================================================ */}
+      {/* SEARCH & FILTER */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="border-border bg-card relative flex w-full max-w-xl items-center rounded-2xl border p-1 shadow-sm">
           <div className="text-muted-foreground flex h-10 w-10 items-center justify-center">
@@ -162,39 +135,130 @@ export default function TransactionsPage() {
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             placeholder="جستجو بر اساس توضیحات، دسته‌بندی و..."
-            className="text-foreground placeholder:text-muted-foreground/70 flex-1 bg-transparent px-2 py-2 text-sm focus:outline-none"
+            className="text-foreground placeholder:text-muted-foreground/70 flex-1 bg-transparent text-sm focus:outline-none"
           />
 
           {searchValue && (
             <span
-              className="text-primary/70 ml-3"
+              className="text-primary/70 ml-3 cursor-pointer"
               onClick={() => setSearchValue("")}
             >
               X
             </span>
           )}
 
-          <button
-            disabled
-            className="bg-secondary/80 text-secondary-foreground flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            <span>فیلترها</span>
-          </button>
+          {/* FILTER DROPDOWN */}
+          <div className="relative" ref={menuFilterRef}>
+            <button
+              onClick={() => setIsMenuFilterOpen((prev) => !prev)}
+              className="bg-secondary/80 text-secondary-foreground hover:bg-secondary relative flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              <span>فیلترها</span>
+            </button>
+
+            {isMenuFilterOpen && (
+              <div className="bg-popover border-primary/70 absolute top-[calc(100%+0.5rem)] left-0 z-50 w-64 rounded-xl border p-4 shadow-2xl md:w-80">
+                {/* TYPE FILTER */}
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold">نوع تراکنش</p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {[
+                      { id: "all" as const, label: "همه" },
+                      { id: "income" as const, label: "درآمد" },
+                      { id: "expense" as const, label: "هزینه" },
+                    ].map((item) => (
+                      <label
+                        key={item.id}
+                        className="border-border hover:bg-accent/30 flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 transition"
+                      >
+                        <input
+                          type="radio"
+                          name="transactionType"
+                          checked={filters.type === item.id}
+                          onChange={() =>
+                            setFilters({ ...filters, type: item.id })
+                          }
+                          className="h-4 w-4 cursor-pointer accent-[var(--primary)]"
+                        />
+                        <span className="text-sm">{item.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* STATUS FILTER - ✅ اصلاح شده */}
+                <div className="mt-6 space-y-3">
+                  <p className="text-sm font-semibold">وضعیت تراکنش</p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {statusItems.map((item) => (
+                      <label
+                        key={item.id}
+                        className="border-border hover:bg-accent/30 flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 transition"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={filters.statuses.includes(item.id)}
+                          onChange={(e) => {
+                            setFilters({
+                              ...filters,
+                              statuses: e.target.checked
+                                ? [...filters.statuses, item.id]
+                                : filters.statuses.filter((s) => s !== item.id),
+                            });
+                          }}
+                          className="h-4 w-4 cursor-pointer accent-[var(--secondary)]"
+                        />
+                        <span className="text-sm">{item.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* DATE RANGE FILTER */}
+                <div className="mt-6 space-y-3">
+                  <p className="text-sm font-semibold">بازه زمانی</p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {dateRangeItems.map((item) => (
+                      <label
+                        key={item.id}
+                        className="border-border hover:bg-accent/30 flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 transition"
+                      >
+                        <input
+                          type="radio"
+                          name="dateRange"
+                          checked={filters.dateRange === item.id}
+                          onChange={() =>
+                            setFilters({ ...filters, dateRange: item.id })
+                          }
+                          className="h-4 w-4 cursor-pointer accent-[var(--destructive)]"
+                        />
+                        <span className="text-sm">{item.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* CLEAR FILTERS */}
+                <button
+                  onClick={resetFilters}
+                  className="bg-accent mt-6 w-full rounded-md py-2.5 text-black dark:text-white"
+                >
+                  پاک کردن فیلترها
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        <button
-          disabled
-          className="border-border bg-background text-muted-foreground flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium"
-        >
-          <ArrowUpDown className="h-4 w-4" />
-          <span>مرتب‌سازی</span>
+        {/* Add transaction button */}
+        <button className="group bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90 flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]">
+          <Plus className="h-5 w-5 transition-transform group-hover:rotate-90" />
+          <span>تراکنش جدید</span>
         </button>
       </div>
 
-      {/* ============================================================ */}
       {/* TABLE */}
-      {/* ============================================================ */}
       <div className="border-border bg-card w-full rounded-xl shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -217,12 +281,14 @@ export default function TransactionsPage() {
             </thead>
 
             <tbody>
-              {/* ---------- EMPTY UI ROW ---------- */}
-
               {paginatedData.map((transaction) => {
+                const typeClasses = {
+                  income: "bg-primary/10 text-primary",
+                  expense: "bg-destructive/10 text-destructive",
+                };
+
                 return (
                   <tr key={transaction.id} className="border-border border-b">
-                    {/* =============Description==================== */}
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div
@@ -244,26 +310,23 @@ export default function TransactionsPage() {
                         </div>
                       </div>
                     </td>
-                    {/* =============Category==================== */}
 
                     <td className="p-4 text-center">
                       <span className="bg-secondary/80 text-secondary-foreground inline-block rounded-lg px-3 py-1 text-xs font-medium">
                         {transaction.category}
                       </span>
                     </td>
-                    {/* =============Date==================== */}
 
                     <td className="p-4 text-center">
                       <span className="text-muted-foreground px-4 py-4 text-center text-xs font-medium tabular-nums">
                         {transaction.date}
                       </span>
                     </td>
-                    {/* =============Payment==================== */}
 
                     <td className="text-muted-foreground p-4 text-center text-xs">
-                      <span className="">{transaction.paymentMethod}</span>
+                      <span>{transaction.paymentMethod}</span>
                     </td>
-                    {/* =============Amount==================== */}
+
                     <td className="p-4 text-center">
                       <div
                         className={cn(
@@ -277,7 +340,6 @@ export default function TransactionsPage() {
                         <span>{transaction.type === "income" ? "+" : "-"}</span>
                       </div>
                     </td>
-                    {/* =============Status==================== */}
 
                     <td className="p-4 text-center">
                       <span
@@ -289,23 +351,13 @@ export default function TransactionsPage() {
                         {statusLabels[transaction.status]}
                       </span>
                     </td>
-                    {/* =============Action Button==================== */}
 
                     <td className="table-cell p-4 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        {/* Edit button */}
-                        <button
-                          className="text-muted-foreground hover:bg-accent/70 hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
-                          title="ویرایش"
-                        >
+                        <button className="text-muted-foreground hover:bg-accent/70 hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors">
                           <Edit className="h-4 w-4" />
                         </button>
-
-                        {/* Delete button */}
-                        <button
-                          className="text-muted-foreground hover:bg-destructive/70 hover:text-destructive-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
-                          title="حذف"
-                        >
+                        <button className="text-muted-foreground hover:bg-destructive/70 hover:text-destructive-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
@@ -318,9 +370,7 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      {/* ============================================================ */}
       {/* EMPTY STATE */}
-      {/* ============================================================ */}
       {filteredTransactions.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-full">
@@ -332,9 +382,7 @@ export default function TransactionsPage() {
         </div>
       )}
 
-      {/* ============================================================ */}
-      {/* PAGINATION (UI ONLY) */}
-      {/* ============================================================ */}
+      {/* PAGINATION */}
       <div className="flex items-center justify-between opacity-70">
         <p className="text-sm">
           نمایش {startItem}–{endItem} از {totalItems} تراکنش
@@ -367,6 +415,8 @@ export default function TransactionsPage() {
           </button>
         </div>
       </div>
+
+      {/* transaction modal */}
     </div>
   );
 }
