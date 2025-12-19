@@ -17,6 +17,7 @@ import { TransactionStatus } from "@/types/transaction";
 import { useTransactionStore } from "@/store/transactionStore";
 import { useEffect, useRef, useState } from "react";
 import { useClickOutside } from "@/hooks/useClickOutside";
+import AddTransactionModal from "@/components/transaction/AddTransactionModal";
 
 // ============================================================
 // CONSTANTS
@@ -417,6 +418,7 @@ export default function TransactionsPage() {
       </div>
 
       {/* transaction modal */}
+      <AddTransactionModal />
     </div>
   );
 }
