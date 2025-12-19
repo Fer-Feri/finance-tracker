@@ -3,8 +3,9 @@
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import CurrencyInput from "../ui/currency-input/CurrencyInput";
+import { useAddTransactionModalSore } from "@/store/addTransactionModal";
 
 export interface ModalProp {
   setIsAddModalOpen: (isOpen: boolean) => void;
@@ -94,33 +95,47 @@ export const TRANSACTION_STATUSES: Payment[] = [
 // ------------------------------------------------------------
 // ------------------------------------------------------------
 export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
-  const [selectedTypeInput, setSelectedTypeInput] = useState<
-    "expense" | "income"
-  >("expense");
-  const [amountInput, setAmountInput] = useState<number | null>(null);
-  const [descriptionInput, setDescriptionInput] = useState<string>("");
-  const [categoryInput, setCategoryInput] = useState<
-    "food" | "salary" | string
-  >("food");
-  const [paymentInput, setPaymentInput] = useState<"card" | string>("card");
-  const [statusInput, setStatusInput] = useState<"completed" | string>(
-    "completed",
-  );
+  const {
+    selectedType: selectedTypeValue,
+    amount: amountValue,
+    description: descriptionValue,
+    category: categoryInput,
+    payment: paymentValue,
+    status: statusValue,
+    setSelectedType,
+    setAmount,
+    setDescription,
+    setCategory,
+    setPayment,
+    setStatus,
+    resetForm,
+  } = useAddTransactionModalSore();
 
+  // ========================================================
   const refElem = useRef(null);
-  useClickOutside(refElem, () => setIsAddModalOpen(false));
+  useClickOutside(refElem, () => {
+    setIsAddModalOpen(false);
+    resetForm();
+  });
 
-  const filteredCategories = TRANSACTION_CATEGORIES.filter((category) =>
-    category.type.includes(selectedTypeInput),
+  const filteredCategories = TRANSACTION_CATEGORIES.filter(
+    (category) => category.type === selectedTypeValue,
   );
 
-  useEffect(() => {
-    if (selectedTypeInput === "expense") {
-      setCategoryInput("food");
-    } else if (selectedTypeInput === "income") {
-      setCategoryInput("salary");
-    }
-  }, [selectedTypeInput]); // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Transaction data:", {
+      type: selectedTypeValue,
+      amount: amountValue,
+      description: descriptionValue,
+      category: categoryInput,
+      payment: paymentValue,
+      status: statusValue,
+    });
+
+    setIsAddModalOpen(false);
+    resetForm();
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
@@ -142,7 +157,13 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
 
           {/* Close Button */}
           <button className="text-muted-foreground hover:bg-accent hover:text-foreground flex h-10 w-10 items-center justify-center rounded-full transition-colors">
-            <X onClick={() => setIsAddModalOpen(false)} className="h-5 w-5" />
+            <X
+              onClick={() => {
+                setIsAddModalOpen(false);
+                resetForm();
+              }}
+              className="h-5 w-5"
+            />
           </button>
         </div>
 
@@ -150,7 +171,7 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
         <div className="bg-border mb-6 h-px w-full" />
 
         {/* Form */}
-        <form className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Transaction Type */}
           <div className="space-y-2">
             <label className="text-foreground block text-sm font-medium">
@@ -163,8 +184,8 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
                   type="radio"
                   name="transaction-type-incom"
                   value="income"
-                  checked={selectedTypeInput === "income"}
-                  onChange={() => setSelectedTypeInput("income")}
+                  checked={selectedTypeValue === "income"}
+                  onChange={() => setSelectedType("income")}
                   className="peer absolute opacity-0"
                 />
                 <div className="peer-checked:bg-primary peer-checked:text-primary-foreground flex h-full w-full items-center justify-center gap-2 rounded-lg transition-colors">
@@ -178,8 +199,8 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
                   type="radio"
                   name="transaction-type-expose"
                   value="expense"
-                  checked={selectedTypeInput === "expense"}
-                  onChange={() => setSelectedTypeInput("expense")}
+                  checked={selectedTypeValue === "expense"}
+                  onChange={() => setSelectedType("expense")}
                   className="peer absolute opacity-0"
                 />
                 <div className="peer-checked:bg-destructive peer-checked:text-destructive-foreground flex h-full w-full items-center justify-center gap-2 rounded-lg transition-colors">
@@ -194,7 +215,7 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
             <label className="text-foreground block text-sm font-medium">
               مبلغ (تومان)
             </label>
-            <CurrencyInput value={amountInput} onChange={setAmountInput} />
+            <CurrencyInput value={amountValue} onChange={setAmount} />
           </div>
 
           {/* Description */}
@@ -205,8 +226,8 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
             <input
               type="text"
               name="description"
-              value={descriptionInput}
-              onChange={(e) => setDescriptionInput(e.target.value)}
+              value={descriptionValue}
+              onChange={(e) => setDescription(e.target.value)}
               required
               placeholder="مثال: خرید مواد غذایی"
               className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 w-full rounded-xl border px-4 py-3 text-sm transition-colors focus:ring-2 focus:outline-none"
@@ -230,7 +251,7 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
                       name="category"
                       required
                       value={category.value}
-                      onChange={() => setCategoryInput(category.value)}
+                      onChange={() => setCategory(category.value)}
                       checked={categoryInput === category.value}
                       className="peer sr-only"
                     />
@@ -262,8 +283,8 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
                       type="radio"
                       name="payment"
                       value={payment.value}
-                      onChange={() => setPaymentInput(payment.value)}
-                      defaultChecked={payment.value === "card"}
+                      onChange={() => setPayment(payment.value)}
+                      checked={paymentValue === payment.value}
                       className="peer sr-only"
                     />
                     <div className="peer-checked:bg-primary peer-checked:text-primary-foreground flex h-full w-full items-center gap-2 rounded-lg p-4 transition-colors">
@@ -304,7 +325,7 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
                     type="radio"
                     name="status"
                     value={status.value}
-                    onChange={() => setStatusInput(status.value)}
+                    onChange={() => setStatus(status.value)}
                     defaultChecked={status.value === "completed"}
                     className="peer sr-only"
                   />
@@ -332,7 +353,10 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
           <div className="mt-9 flex gap-3 pt-4">
             <button
               type="button"
-              onClick={() => setIsAddModalOpen(false)}
+              onClick={() => {
+                setIsAddModalOpen(false);
+                resetForm();
+              }}
               className="border-border hover:bg-accent flex-1 rounded-xl border px-4 py-3 text-sm font-medium transition-colors"
             >
               انصراف
