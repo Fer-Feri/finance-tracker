@@ -44,6 +44,7 @@ const statusItems: { id: TransactionStatus; label: string }[] = [
 // ============================================================
 export default function TransactionsPage() {
   const [isMenuFilterOpen, setIsMenuFilterOpen] = useState<boolean>(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const menuFilterRef = useRef<HTMLDivElement>(null);
 
   useClickOutside(menuFilterRef, () => setIsMenuFilterOpen(false));
@@ -253,7 +254,10 @@ export default function TransactionsPage() {
         </div>
 
         {/* Add transaction button */}
-        <button className="group bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90 flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]">
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="group bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90 flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+        >
           <Plus className="h-5 w-5 transition-transform group-hover:rotate-90" />
           <span>تراکنش جدید</span>
         </button>
@@ -418,7 +422,9 @@ export default function TransactionsPage() {
       </div>
 
       {/* transaction modal */}
-      <AddTransactionModal />
+      {isAddModalOpen && (
+        <AddTransactionModal setIsAddModalOpen={setIsAddModalOpen} />
+      )}
     </div>
   );
 }

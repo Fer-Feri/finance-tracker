@@ -79,6 +79,11 @@
   --sidebar-accent-foreground: oklch(0.15 0.05 270);
   --sidebar-border: oklch(90.238% 0.02005 45.04);
   --sidebar-ring: oklch(0.6 0.2 240);
+  /* 
+  --scrollbar-bg: transparent;
+  --scrollbar-thumb: hsl(var(--border));
+  --scrollbar-thumb-hover: hsl(var(--primary));
+  --scrollbar-width: 10px; */
 }
 
 /* ========================================
@@ -193,6 +198,8 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) var(--muted);
   }
 
   body {
@@ -200,7 +207,6 @@
     font-family: "IRANSans", ui-sans-serif, system-ui, sans-serif;
   }
 
-  /* اسکرول بار سفارشی */
   ::-webkit-scrollbar {
     @apply h-2 w-2;
   }
@@ -215,6 +221,35 @@
 
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-muted-foreground/50;
+  }
+
+  *::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: var(--primary);
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--muted);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted);
+  }
+  /* hide scrollbar */
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE & Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
   }
 }
 
