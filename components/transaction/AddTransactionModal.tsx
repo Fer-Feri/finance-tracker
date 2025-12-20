@@ -3,9 +3,11 @@
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import CurrencyInput from "../ui/currency-input/CurrencyInput";
-import { useAddTransactionModalSore } from "@/store/addTransactionModal";
+import { useAddTransactionModalStore } from "@/store/addTransactionModalStore";
+import { PersianDatePicker } from "../ui/PersianDatePicker";
+import { useTransactionStore } from "@/store/transactionStore";
 
 export interface ModalProp {
   setIsAddModalOpen: (isOpen: boolean) => void;
@@ -96,20 +98,27 @@ export const TRANSACTION_STATUSES: Payment[] = [
 // ------------------------------------------------------------
 export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
   const {
+    typeModal,
+    selectedTransactionId,
     selectedType: selectedTypeValue,
     amount: amountValue,
     description: descriptionValue,
     category: categoryInput,
     payment: paymentValue,
     status: statusValue,
+    date,
+    setDate,
     setSelectedType,
     setAmount,
     setDescription,
     setCategory,
     setPayment,
     setStatus,
+    loadTransactionData,
     resetForm,
-  } = useAddTransactionModalSore();
+  } = useAddTransactionModalStore();
+
+  const { transactions } = useTransactionStore();
 
   // ========================================================
   const refElem = useRef(null);
@@ -118,20 +127,57 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
     resetForm();
   });
 
+  // ======================== پر کردن فرم در حالت Edit==========================
+  useEffect(() => {
+    if (typeModal === "edit" && selectedTransactionId) {
+      const transaction = transactions.find(
+        (t) => t.id === selectedTransactionId,
+      );
+
+      if (transaction) {
+        // پر کردن فرم با داده‌های تراکنش
+        loadTransactionData({
+          type: transaction.type,
+          amount: transaction.amount,
+          description: transaction.description ?? "",
+          category: transaction.category,
+          paymentMethod: transaction.paymentMethod ?? "card",
+          status: transaction.status,
+          date: transaction.date,
+        });
+      }
+    }
+  }, [typeModal, selectedTransactionId, transactions, loadTransactionData]);
+
   const filteredCategories = TRANSACTION_CATEGORIES.filter(
     (category) => category.type === selectedTypeValue,
   );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Transaction data:", {
-      type: selectedTypeValue,
-      amount: amountValue,
-      description: descriptionValue,
-      category: categoryInput,
-      payment: paymentValue,
-      status: statusValue,
-    });
+
+    if (typeModal === "add") {
+      console.log("✅ افزودن تراکنش جدید:", {
+        type: selectedTypeValue,
+        amount: amountValue,
+        description: descriptionValue,
+        category: categoryInput,
+        payment: paymentValue,
+        status: statusValue,
+        date,
+      });
+    } else {
+      console.log("✏️ ویرایش تراکنش:", {
+        id: selectedTransactionId,
+        type: selectedTypeValue,
+        amount: amountValue,
+        description: descriptionValue,
+        category: categoryInput,
+        payment: paymentValue,
+        status: statusValue,
+        date,
+      });
+    }
 
     setIsAddModalOpen(false);
     resetForm();
@@ -148,10 +194,12 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-foreground text-2xl font-bold">
-              افزودن تراکنش جدید
+              {typeModal === "add" ? " افزودن تراکنش جدید" : "ویرایش تراکنش"}
             </h2>
             <p className="text-muted-foreground mt-1 text-sm">
-              اطلاعات تراکنش مالی خود را وارد کنید
+              {typeModal === "add"
+                ? " اطلاعات تراکنش مالی خود را وارد کنید"
+                : " اطلاعات تراکنش مالی خود را ویرایش کنید"}
             </p>
           </div>
 
@@ -226,9 +274,9 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
             <input
               type="text"
               name="description"
+              required
               value={descriptionValue}
               onChange={(e) => setDescription(e.target.value)}
-              required
               placeholder="مثال: خرید مواد غذایی"
               className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 w-full rounded-xl border px-4 py-3 text-sm transition-colors focus:ring-2 focus:outline-none"
             />
@@ -303,10 +351,10 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
             <label className="text-foreground block text-sm font-medium">
               تاریخ
             </label>
-            <input
-              type="text"
-              placeholder="1404/09/28"
-              className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 w-full rounded-xl border px-4 py-3 text-sm transition-colors focus:ring-2 focus:outline-none"
+            <PersianDatePicker
+              value={date}
+              onChange={setDate}
+              placeholder="تاریخ تراکنش"
             />
           </div>
 
@@ -365,7 +413,7 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
               type="submit"
               className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-xl px-4 py-3 text-sm font-medium shadow-lg transition-all hover:shadow-xl"
             >
-              ذخیره تراکنش
+              {typeModal === "add" ? " افزودن تراکنش جدید" : " ذخیره تراکنش"}
             </button>
           </div>
         </form>

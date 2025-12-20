@@ -54,6 +54,8 @@ interface TransactionStoreType {
     endItem: number;
     totalItems: number;
   };
+
+  deleteTransaction: (id: string) => void;
 }
 
 export const useTransactionStore = create<TransactionStoreType>((set, get) => ({
@@ -224,5 +226,11 @@ export const useTransactionStore = create<TransactionStoreType>((set, get) => ({
       startItem,
       endItem,
     };
+  },
+
+  deleteTransaction: (id: string) => {
+    set((state) => ({
+      transactions: state.transactions.filter((t) => t.id !== id),
+    }));
   },
 }));

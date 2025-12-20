@@ -9,7 +9,7 @@ export const transactionsData: Transaction[] = [
     amount: 15000000,
     type: "income",
     status: "completed",
-    paymentMethod: "کارت به کارت",
+    paymentMethod: "card",
   },
   {
     id: "TRX002",
@@ -19,7 +19,7 @@ export const transactionsData: Transaction[] = [
     amount: 2500000,
     type: "expense",
     status: "completed",
-    paymentMethod: "درگاه بانکی",
+    paymentMethod: "online",
   },
   {
     id: "TRX003",
@@ -29,7 +29,7 @@ export const transactionsData: Transaction[] = [
     amount: 35000000,
     type: "expense",
     status: "pending",
-    paymentMethod: "واریز بانکی",
+    paymentMethod: "cash",
   },
   {
     id: "TRX004",
@@ -39,7 +39,7 @@ export const transactionsData: Transaction[] = [
     amount: 8500000,
     type: "income",
     status: "completed",
-    paymentMethod: "پی‌پال",
+    paymentMethod: "card",
   },
   {
     id: "TRX005",
@@ -49,7 +49,7 @@ export const transactionsData: Transaction[] = [
     amount: 1200000,
     type: "expense",
     status: "failed",
-    paymentMethod: "کارت اعتباری",
+    paymentMethod: "online",
   },
   {
     id: "TRX006",
@@ -59,7 +59,7 @@ export const transactionsData: Transaction[] = [
     amount: 4500000,
     type: "income",
     status: "completed",
-    paymentMethod: "درگاه زرین‌پال",
+    paymentMethod: "card",
   },
   {
     id: "TRX007",
@@ -69,7 +69,7 @@ export const transactionsData: Transaction[] = [
     amount: 3800000,
     type: "expense",
     status: "completed",
-    paymentMethod: "کارت بانکی",
+    paymentMethod: "online",
   },
   {
     id: "TRX008",
@@ -79,7 +79,7 @@ export const transactionsData: Transaction[] = [
     amount: 6000000,
     type: "income",
     status: "pending",
-    paymentMethod: "واریز نقدی",
+    paymentMethod: "online",
   },
   {
     id: "TRX009",
@@ -89,7 +89,7 @@ export const transactionsData: Transaction[] = [
     amount: 450000,
     type: "expense",
     status: "completed",
-    paymentMethod: "درگاه بانکی",
+    paymentMethod: "card",
   },
   {
     id: "TRX010",
@@ -99,7 +99,7 @@ export const transactionsData: Transaction[] = [
     amount: 7200000,
     type: "income",
     status: "completed",
-    paymentMethod: "کارت به کارت",
+    paymentMethod: "online",
   },
   {
     id: "TRX011",
@@ -109,7 +109,7 @@ export const transactionsData: Transaction[] = [
     amount: 2100000,
     type: "expense",
     status: "completed",
-    paymentMethod: "کارت بانکی",
+    paymentMethod: "card",
   },
   {
     id: "TRX012",
@@ -119,7 +119,7 @@ export const transactionsData: Transaction[] = [
     amount: 9800000,
     type: "income",
     status: "completed",
-    paymentMethod: "پی‌پال",
+    paymentMethod: "online",
   },
   {
     id: "TRX013",
@@ -129,7 +129,7 @@ export const transactionsData: Transaction[] = [
     amount: 900000,
     type: "expense",
     status: "completed",
-    paymentMethod: "کارت اعتباری",
+    paymentMethod: "cash",
   },
   {
     id: "TRX014",
@@ -139,7 +139,7 @@ export const transactionsData: Transaction[] = [
     amount: 3000000,
     type: "income",
     status: "pending",
-    paymentMethod: "واریز بانکی",
+    paymentMethod: "cash",
   },
   {
     id: "TRX015",
@@ -149,7 +149,7 @@ export const transactionsData: Transaction[] = [
     amount: 650000,
     type: "expense",
     status: "completed",
-    paymentMethod: "کارت بانکی",
+    paymentMethod: "cash",
   },
   {
     id: "TRX016",
@@ -159,7 +159,7 @@ export const transactionsData: Transaction[] = [
     amount: 5600000,
     type: "income",
     status: "completed",
-    paymentMethod: "زرین‌پال",
+    paymentMethod: "cash",
   },
   {
     id: "TRX017",
@@ -169,7 +169,7 @@ export const transactionsData: Transaction[] = [
     amount: 7800000,
     type: "expense",
     status: "completed",
-    paymentMethod: "درگاه بانکی",
+    paymentMethod: "card",
   },
   {
     id: "TRX018",
@@ -179,7 +179,7 @@ export const transactionsData: Transaction[] = [
     amount: 4200000,
     type: "income",
     status: "completed",
-    paymentMethod: "کارت به کارت",
+    paymentMethod: "card",
   },
   {
     id: "TRX019",
@@ -189,7 +189,7 @@ export const transactionsData: Transaction[] = [
     amount: 1100000,
     type: "expense",
     status: "failed",
-    paymentMethod: "کارت اعتباری",
+    paymentMethod: "cash",
   },
   {
     id: "TRX020",
@@ -199,6 +199,6 @@ export const transactionsData: Transaction[] = [
     amount: 24000000,
     type: "income",
     status: "completed",
-    paymentMethod: "واریز بانکی",
+    paymentMethod: "cash",
   },
 ];

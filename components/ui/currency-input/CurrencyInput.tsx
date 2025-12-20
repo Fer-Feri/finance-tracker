@@ -18,8 +18,8 @@ export default function CurrencyInput({
     <input
       type="text"
       name="amount"
-      inputMode="numeric"
       required
+      inputMode="numeric"
       value={value !== null ? value.toLocaleString("fa-IR") : ""}
       onChange={(e) => {
         const normalized = normalizeDigits(e.target.value);
