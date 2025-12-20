@@ -1,50 +1,53 @@
+// components/modals/AddTransactionModal.tsx
+
 "use client";
 
+import { useEffect, useRef } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
-import { useEffect, useRef } from "react";
 import CurrencyInput from "../ui/currency-input/CurrencyInput";
-import { useAddTransactionModalStore } from "@/store/addTransactionModalStore";
 import { PersianDatePicker } from "../ui/PersianDatePicker";
 import { useTransactionStore } from "@/store/transactionStore";
+import {
+  Transaction,
+  TransactionType,
+  TransactionStatus,
+} from "@/types/transaction";
 
-export interface ModalProp {
-  setIsAddModalOpen: (isOpen: boolean) => void;
+// ========== Types ==========
+interface TransactionFormData {
+  type: TransactionType;
+  amount: number;
+  description: string;
+  category: string;
+  paymentMethod: "card" | "online" | "cash";
+  status: TransactionStatus;
+  date: string;
 }
-export interface Category {
+
+interface Category {
   value: string;
   label: string;
   type: "income" | "expense";
   icon?: string;
 }
-export interface Payment {
-  value: string;
-  label: string;
-}
-export interface Status {
+
+interface Payment {
   value: string;
   label: string;
 }
 
+// ========== Constants ==========
 export const TRANSACTION_CATEGORIES: Category[] = [
-  // 💸 EXPENSE Categories
+  // 💸 EXPENSE
   { value: "food", label: "خوراک و نوشیدنی", type: "expense", icon: "🍔" },
   { value: "transport", label: "حمل و نقل", type: "expense", icon: "🚗" },
   { value: "shopping", label: "خرید و پوشاک", type: "expense", icon: "🛍️" },
-  {
-    value: "bills",
-    label: "قبض",
-    type: "expense",
-    icon: "📄",
-  },
+  { value: "bills", label: "قبض", type: "expense", icon: "📄" },
   { value: "health", label: "بهداشت و درمان", type: "expense", icon: "🏥" },
-  {
-    value: "entertainment",
-    label: "سرگرمی و تفریح",
-    type: "expense",
-    icon: "🎮",
-  },
+  { value: "entertainment", label: "سرگرمی", type: "expense", icon: "🎮" },
   { value: "education", label: "آموزش", type: "expense", icon: "📚" },
   { value: "home", label: "خانه و اجاره", type: "expense", icon: "🏠" },
   { value: "insurance", label: "بیمه", type: "expense", icon: "🛡️" },
@@ -56,16 +59,11 @@ export const TRANSACTION_CATEGORIES: Category[] = [
     icon: "📦",
   },
 
-  // 💰 INCOME Categories
+  // 💰 INCOME
   { value: "salary", label: "حقوق و دستمزد", type: "income", icon: "💼" },
   { value: "freelance", label: "پروژه و فریلنس", type: "income", icon: "💻" },
   { value: "business", label: "کسب و کار", type: "income", icon: "🏢" },
-  {
-    value: "investment",
-    label: "سرمایه‌گذاری و سود",
-    type: "income",
-    icon: "📈",
-  },
+  { value: "investment", label: "سرمایه‌گذاری", type: "income", icon: "📈" },
   { value: "rental", label: "اجاره و رهن", type: "income", icon: "🔑" },
   { value: "bonus", label: "پاداش و عیدی", type: "income", icon: "🎉" },
   { value: "gift-received", label: "هدیه دریافتی", type: "income", icon: "🎁" },
@@ -74,188 +72,167 @@ export const TRANSACTION_CATEGORIES: Category[] = [
 
 export const TRANSACTION_PAYMENTS: Payment[] = [
   { value: "card", label: "کارت بانکی" },
-  { value: "online", label: "آنلاین" },
+  { value: "online", label: "آنلاین" },
   { value: "cash", label: "نقدی" },
 ];
 
 export const TRANSACTION_STATUSES: Payment[] = [
-  {
-    value: "completed",
-    label: "تکمیل شده",
-  },
-  {
-    value: "pending",
-    label: "در انتظار",
-  },
-  {
-    value: "failed",
-    label: "ناموفق",
-  },
+  { value: "completed", label: "تکمیل شده" },
+  { value: "pending", label: "در انتظار" },
+  { value: "failed", label: "ناموفق" },
 ];
 
-// ------------------------------------------------------------
-// ------------------------------------------------------------
-// ------------------------------------------------------------
-export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
+// ========== Component ==========
+export default function AddTransactionModal() {
   const {
+    isAddModalOpen,
+    setIsAddModalOpen,
     typeModal,
-    selectedTransactionId,
-    selectedType: selectedTypeValue,
-    amount: amountValue,
-    description: descriptionValue,
-    category: categoryInput,
-    payment: paymentValue,
-    status: statusValue,
-    date,
-    setDate,
-    setSelectedType,
-    setAmount,
-    setDescription,
-    setCategory,
-    setPayment,
-    setStatus,
-    loadTransactionData,
-    resetForm,
-  } = useAddTransactionModalStore();
+    selectedTransaction,
+    addTransaction,
+    editTransaction,
+  } = useTransactionStore();
 
-  const { transactions } = useTransactionStore();
-
-  // ========================================================
   const refElem = useRef(null);
-  useClickOutside(refElem, () => {
-    setIsAddModalOpen(false);
-    resetForm();
-  });
 
-  // ======================== پر کردن فرم در حالت Edit==========================
+  // ✅ react-hook-form
+  const { control, handleSubmit, reset, watch, setValue } =
+    useForm<TransactionFormData>({
+      defaultValues: {
+        type: "income",
+        amount: 0,
+        description: "",
+        category: "",
+        paymentMethod: "card",
+        status: "completed",
+        date: new Date()
+          .toLocaleDateString("fa-IR", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          })
+          .replace(/\//g, "/"),
+      },
+    });
+
+  const selectedType = watch("type");
+
+  // ✅ پر کردن فرم در Edit Mode
   useEffect(() => {
-    if (typeModal === "edit" && selectedTransactionId) {
-      const transaction = transactions.find(
-        (t) => t.id === selectedTransactionId,
-      );
-
-      if (transaction) {
-        // پر کردن فرم با داده‌های تراکنش
-        loadTransactionData({
-          type: transaction.type,
-          amount: transaction.amount,
-          description: transaction.description ?? "",
-          category: transaction.category,
-          paymentMethod: transaction.paymentMethod ?? "card",
-          status: transaction.status,
-          date: transaction.date,
-        });
-      }
-    }
-  }, [typeModal, selectedTransactionId, transactions, loadTransactionData]);
-
-  const filteredCategories = TRANSACTION_CATEGORIES.filter(
-    (category) => category.type === selectedTypeValue,
-  );
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (typeModal === "add") {
-      console.log("✅ افزودن تراکنش جدید:", {
-        type: selectedTypeValue,
-        amount: amountValue,
-        description: descriptionValue,
-        category: categoryInput,
-        payment: paymentValue,
-        status: statusValue,
-        date,
+    if (typeModal === "edit" && selectedTransaction) {
+      reset({
+        type: selectedTransaction.type,
+        amount: selectedTransaction.amount,
+        description: selectedTransaction.description || "",
+        category: selectedTransaction.category,
+        paymentMethod: selectedTransaction.paymentMethod as
+          | "card"
+          | "online"
+          | "cash",
+        status: selectedTransaction.status,
+        date: selectedTransaction.date,
       });
     } else {
-      console.log("✏️ ویرایش تراکنش:", {
-        id: selectedTransactionId,
-        type: selectedTypeValue,
-        amount: amountValue,
-        description: descriptionValue,
-        category: categoryInput,
-        payment: paymentValue,
-        status: statusValue,
-        date,
-      });
+      reset();
     }
+  }, [typeModal, selectedTransaction, reset]);
 
+  // ✅ بستن Modal با کلیک بیرون
+  useClickOutside(refElem, () => {
     setIsAddModalOpen(false);
-    resetForm();
+    reset();
+  });
+
+  // ✅ Submit Form
+  const onSubmit = (data: TransactionFormData) => {
+    if (typeModal === "add") {
+      addTransaction(data);
+    } else if (typeModal === "edit" && selectedTransaction?.id) {
+      editTransaction(selectedTransaction.id, data);
+    }
+    setIsAddModalOpen(false);
+    reset();
   };
+
+  // فیلتر دسته‌بندی‌ها
+  const filteredCategories = TRANSACTION_CATEGORIES.filter(
+    (cat) => cat.type === selectedType,
+  );
+
+  if (!isAddModalOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      {/* Modal Container */}
       <div
         ref={refElem}
-        className="bg-card border-border animate-in fade-in zoom-in-95 no-scrollbar relative flex h-[90vh] w-full max-w-2xl flex-col overflow-auto rounded-2xl border p-6 shadow-2xl duration-300"
+        className="bg-card border-border no-scrollbar animate-in fade-in zoom-in-95 relative flex h-[90vh] w-full max-w-2xl flex-col overflow-auto rounded-2xl border p-6 shadow-2xl"
       >
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-foreground text-2xl font-bold">
-              {typeModal === "add" ? " افزودن تراکنش جدید" : "ویرایش تراکنش"}
+              {typeModal === "add" ? "افزودن تراکنش جدید" : "ویرایش تراکنش"}
             </h2>
             <p className="text-muted-foreground mt-1 text-sm">
               {typeModal === "add"
-                ? " اطلاعات تراکنش مالی خود را وارد کنید"
-                : " اطلاعات تراکنش مالی خود را ویرایش کنید"}
+                ? "اطلاعات تراکنش مالی خود را وارد کنید"
+                : "اطلاعات تراکنش مالی خود را ویرایش کنید"}
             </p>
           </div>
 
-          {/* Close Button */}
-          <button className="text-muted-foreground hover:bg-accent hover:text-foreground flex h-10 w-10 items-center justify-center rounded-full transition-colors">
-            <X
-              onClick={() => {
-                setIsAddModalOpen(false);
-                resetForm();
-              }}
-              className="h-5 w-5"
-            />
+          <button
+            onClick={() => {
+              setIsAddModalOpen(false);
+              reset();
+            }}
+            className="text-muted-foreground hover:bg-accent hover:text-foreground flex h-10 w-10 items-center justify-center rounded-full transition-colors"
+          >
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Divider */}
         <div className="bg-border mb-6 h-px w-full" />
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {/* Transaction Type */}
           <div className="space-y-2">
             <label className="text-foreground block text-sm font-medium">
               نوع تراکنش
             </label>
-            <div className="grid grid-cols-2 gap-3">
-              {/* درآمد */}
-              <label className="border-border hover:border-primary relative flex h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border transition-all">
-                <input
-                  type="radio"
-                  name="transaction-type-incom"
-                  value="income"
-                  checked={selectedTypeValue === "income"}
-                  onChange={() => setSelectedType("income")}
-                  className="peer absolute opacity-0"
-                />
-                <div className="peer-checked:bg-primary peer-checked:text-primary-foreground flex h-full w-full items-center justify-center gap-2 rounded-lg transition-colors">
-                  <span className="text-sm font-medium">💰 درآمد</span>
-                </div>
-              </label>
+            <Controller
+              name="type"
+              control={control}
+              render={({ field }) => (
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="border-border hover:border-primary relative flex h-14 cursor-pointer items-center justify-center rounded-xl border transition-all">
+                    <input
+                      {...field}
+                      type="radio"
+                      value="income"
+                      checked={field.value === "income"}
+                      className="peer absolute opacity-0"
+                    />
+                    <div className="peer-checked:bg-primary peer-checked:text-primary-foreground flex h-full w-full items-center justify-center gap-2 rounded-lg transition-colors">
+                      <span className="text-sm font-medium">💰 درآمد</span>
+                    </div>
+                  </label>
 
-              {/* هزینه */}
-              <label className="border-border hover:border-destructive relative flex h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border transition-all">
-                <input
-                  type="radio"
-                  name="transaction-type-expose"
-                  value="expense"
-                  checked={selectedTypeValue === "expense"}
-                  onChange={() => setSelectedType("expense")}
-                  className="peer absolute opacity-0"
-                />
-                <div className="peer-checked:bg-destructive peer-checked:text-destructive-foreground flex h-full w-full items-center justify-center gap-2 rounded-lg transition-colors">
-                  <span className="text-sm font-medium">💸 هزینه</span>
+                  <label className="border-border hover:border-destructive relative flex h-14 cursor-pointer items-center justify-center rounded-xl border transition-all">
+                    <input
+                      {...field}
+                      type="radio"
+                      value="expense"
+                      checked={field.value === "expense"}
+                      className="peer absolute opacity-0"
+                    />
+                    <div className="peer-checked:bg-destructive peer-checked:text-destructive-foreground flex h-full w-full items-center justify-center gap-2 rounded-lg transition-colors">
+                      <span className="text-sm font-medium">💸 هزینه</span>
+                    </div>
+                  </label>
                 </div>
-              </label>
-            </div>
+              )}
+            />
           </div>
 
           {/* Amount */}
@@ -263,7 +240,17 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
             <label className="text-foreground block text-sm font-medium">
               مبلغ (تومان)
             </label>
-            <CurrencyInput value={amountValue} onChange={setAmount} />
+            <Controller
+              name="amount"
+              control={control}
+              rules={{ required: true, min: 1 }}
+              render={({ field }) => (
+                <CurrencyInput
+                  value={field.value}
+                  onChange={(value) => field.onChange(value || 0)}
+                />
+              )}
+            />
           </div>
 
           {/* Description */}
@@ -271,90 +258,106 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
             <label className="text-foreground block text-sm font-medium">
               توضیحات
             </label>
-            <input
-              type="text"
+            <Controller
               name="description"
-              required
-              value={descriptionValue}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="مثال: خرید مواد غذایی"
-              className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 w-full rounded-xl border px-4 py-3 text-sm transition-colors focus:ring-2 focus:outline-none"
+              control={control}
+              rules={{ required: true }}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  type="text"
+                  placeholder="مثال: خرید مواد غذایی"
+                  className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20 w-full rounded-xl border px-4 py-3 text-sm transition-colors focus:ring-2 focus:outline-none"
+                />
+              )}
             />
           </div>
 
           {/* Category */}
-          <div className="bg-muted/50 space-y-2 rounded-md p-4 shadow-lg">
+          <div className="bg-muted/50 space-y-2 rounded-md p-4">
             <label className="text-foreground block text-sm font-medium">
               دسته‌بندی
             </label>
-            <div className="md: grid grid-cols-2 gap-2 md:grid-cols-3">
-              {filteredCategories.map((category) => {
-                return (
-                  <label
-                    key={category.value}
-                    className="border-border hover:border-primary relative flex w-full cursor-pointer grid-cols-3 items-center justify-center gap-2 rounded-xl border transition-all"
-                  >
-                    <input
-                      type="radio"
-                      name="category"
-                      required
-                      value={category.value}
-                      onChange={() => setCategory(category.value)}
-                      checked={categoryInput === category.value}
-                      className="peer sr-only"
-                    />
-                    <div className="peer-checked:bg-primary peer-checked:text-primary-foreground flex h-full w-full items-center gap-2 rounded-lg p-4 transition-colors">
-                      <span>{category.icon}</span>
-                      <span className="text-sm font-medium">
-                        {category.label}
-                      </span>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
+            <Controller
+              name="category"
+              control={control}
+              rules={{ required: true }}
+              render={({ field }) => (
+                <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+                  {filteredCategories.map((category) => (
+                    <label
+                      key={category.value}
+                      className="border-border hover:border-primary relative flex cursor-pointer items-center justify-center rounded-xl border transition-all"
+                    >
+                      <input
+                        {...field}
+                        type="radio"
+                        value={category.value}
+                        checked={field.value === category.value}
+                        className="peer sr-only"
+                      />
+                      <div className="peer-checked:bg-primary peer-checked:text-primary-foreground flex h-full w-full items-center gap-2 rounded-lg p-4 transition-colors">
+                        <span>{category.icon}</span>
+                        <span className="text-sm font-medium">
+                          {category.label}
+                        </span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+            />
           </div>
 
           {/* Payment Method */}
-          <div className="mt-9 space-y-2">
+          <div className="space-y-2">
             <label className="text-foreground block text-sm font-medium">
               روش پرداخت
             </label>
-            <div className="md: grid grid-cols-2 gap-2 md:grid-cols-3">
-              {TRANSACTION_PAYMENTS.map((payment) => {
-                return (
-                  <label
-                    key={payment.value}
-                    className="border-border hover:border-primary relative flex w-full cursor-pointer grid-cols-3 items-center justify-center gap-2 rounded-xl border transition-all"
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      value={payment.value}
-                      onChange={() => setPayment(payment.value)}
-                      checked={paymentValue === payment.value}
-                      className="peer sr-only"
-                    />
-                    <div className="peer-checked:bg-primary peer-checked:text-primary-foreground flex h-full w-full items-center gap-2 rounded-lg p-4 transition-colors">
-                      <span className="text-sm font-medium">
-                        {payment.label}
-                      </span>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
+            <Controller
+              name="paymentMethod"
+              control={control}
+              render={({ field }) => (
+                <div className="grid grid-cols-3 gap-2">
+                  {TRANSACTION_PAYMENTS.map((payment) => (
+                    <label
+                      key={payment.value}
+                      className="border-border hover:border-primary relative flex cursor-pointer items-center justify-center rounded-xl border transition-all"
+                    >
+                      <input
+                        {...field}
+                        type="radio"
+                        value={payment.value}
+                        checked={field.value === payment.value}
+                        className="peer sr-only"
+                      />
+                      <div className="peer-checked:bg-primary peer-checked:text-primary-foreground flex h-full w-full items-center justify-center rounded-lg p-4 transition-colors">
+                        <span className="text-sm font-medium">
+                          {payment.label}
+                        </span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+            />
           </div>
 
           {/* Date */}
-          <div className="mt-9 space-y-2">
+          <div className="space-y-2">
             <label className="text-foreground block text-sm font-medium">
               تاریخ
             </label>
-            <PersianDatePicker
-              value={date}
-              onChange={setDate}
-              placeholder="تاریخ تراکنش"
+            <Controller
+              name="date"
+              control={control}
+              render={({ field }) => (
+                <PersianDatePicker
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="تاریخ تراکنش"
+                />
+              )}
             />
           </div>
 
@@ -363,47 +366,52 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
             <label className="text-foreground block text-sm font-medium">
               وضعیت
             </label>
-            <div className="grid grid-cols-3 gap-3">
-              {TRANSACTION_STATUSES.map((status) => (
-                <label
-                  key={status.value}
-                  className={`border-border relative flex h-12 cursor-pointer items-center justify-center rounded-xl border transition-all`}
-                >
-                  <input
-                    type="radio"
-                    name="status"
-                    value={status.value}
-                    onChange={() => setStatus(status.value)}
-                    defaultChecked={status.value === "completed"}
-                    className="peer sr-only"
-                  />
-                  <div
-                    className={cn(
-                      "flex h-full w-full items-center justify-center rounded-xl",
-                      status.value === "completed" &&
-                        "peer-checked:bg-secondary peer-checked:text-muted",
-                      status.value === "pending" &&
-                        "peer-checked:bg-primary peer-checked:text-muted",
-                      status.value === "failed" &&
-                        "peer-checked:bg-destructive peer-checked:text-muted",
-                    )}
-                  >
-                    <span className="text-sm font-medium peer-checked:font-bold">
-                      {status.label}
-                    </span>
-                  </div>
-                </label>
-              ))}
-            </div>
+            <Controller
+              name="status"
+              control={control}
+              render={({ field }) => (
+                <div className="grid grid-cols-3 gap-3">
+                  {TRANSACTION_STATUSES.map((status) => (
+                    <label
+                      key={status.value}
+                      className="border-border relative flex h-12 cursor-pointer items-center justify-center rounded-xl border transition-all"
+                    >
+                      <input
+                        {...field}
+                        type="radio"
+                        value={status.value}
+                        checked={field.value === status.value}
+                        className="peer sr-only"
+                      />
+                      <div
+                        className={cn(
+                          "flex h-full w-full items-center justify-center rounded-xl transition-colors",
+                          status.value === "completed" &&
+                            "peer-checked:bg-secondary peer-checked:text-secondary-foreground",
+                          status.value === "pending" &&
+                            "peer-checked:bg-primary peer-checked:text-primary-foreground",
+                          status.value === "failed" &&
+                            "peer-checked:bg-destructive peer-checked:text-destructive-foreground",
+                        )}
+                      >
+                        <span className="text-sm font-medium">
+                          {status.label}
+                        </span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+            />
           </div>
 
           {/* Action Buttons */}
-          <div className="mt-9 flex gap-3 pt-4">
+          <div className="flex gap-3 pt-4">
             <button
               type="button"
               onClick={() => {
                 setIsAddModalOpen(false);
-                resetForm();
+                reset();
               }}
               className="border-border hover:bg-accent flex-1 rounded-xl border px-4 py-3 text-sm font-medium transition-colors"
             >
@@ -411,9 +419,9 @@ export default function AddTransactionModal({ setIsAddModalOpen }: ModalProp) {
             </button>
             <button
               type="submit"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-xl px-4 py-3 text-sm font-medium shadow-lg transition-all hover:shadow-xl"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-xl px-4 py-3 text-sm font-medium shadow-lg transition-all"
             >
-              {typeModal === "add" ? " افزودن تراکنش جدید" : " ذخیره تراکنش"}
+              {typeModal === "add" ? "افزودن تراکنش" : "ذخیره تراکنش"}
             </button>
           </div>
         </form>

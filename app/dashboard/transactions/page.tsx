@@ -17,7 +17,6 @@ import { useTransactionStore } from "@/store/transactionStore";
 import { useEffect, useRef, useState } from "react";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import AddTransactionModal from "@/components/transaction/AddTransactionModal";
-import { useAddTransactionModalStore } from "@/store/addTransactionModalStore";
 
 // ============================================================
 // CONSTANTS
@@ -32,7 +31,6 @@ const dateRangeItems: {
   { id: "month", label: "این ماه" },
 ];
 
-// ✅ تعریف صحیح آیتم‌های وضعیت با تایپ
 const statusItems: { id: TransactionStatus; label: string }[] = [
   { id: "completed", label: "تکمیل شده" },
   { id: "pending", label: "در انتظار" },
@@ -44,7 +42,6 @@ const statusItems: { id: TransactionStatus; label: string }[] = [
 // ============================================================
 export default function TransactionsPage() {
   const [isMenuFilterOpen, setIsMenuFilterOpen] = useState<boolean>(false);
-  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const menuFilterRef = useRef<HTMLDivElement>(null);
 
   useClickOutside(menuFilterRef, () => setIsMenuFilterOpen(false));
@@ -64,10 +61,11 @@ export default function TransactionsPage() {
     getPageInfo,
     itemPerPage,
     deleteTransaction,
+    openAddModal,
+    openEditModal,
+    isAddModalOpen,
+    setIsAddModalOpen,
   } = useTransactionStore();
-
-  const { setTypeModal, setTransactionForEdit, resetForm } =
-    useAddTransactionModalStore();
 
   const filteredTransactions = getFilteredTransactions();
   const { totalPages, startItem, endItem, totalItems } = getPageInfo();
@@ -115,7 +113,7 @@ export default function TransactionsPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("آیا مطمئن هستید؟")) {
+    if (confirm("آیا مطمئن هستید؟")) {
       deleteTransaction(id);
     }
   };
@@ -199,7 +197,7 @@ export default function TransactionsPage() {
                   </div>
                 </div>
 
-                {/* STATUS FILTER - ✅ اصلاح شده */}
+                {/* STATUS FILTER */}
                 <div className="mt-6 space-y-3">
                   <p className="text-sm font-semibold">وضعیت تراکنش</p>
                   <div className="grid grid-cols-1 gap-2">
@@ -265,11 +263,7 @@ export default function TransactionsPage() {
 
         {/* Add transaction button */}
         <button
-          onClick={() => {
-            resetForm();
-            setIsAddModalOpen(true);
-            setTypeModal("add");
-          }}
+          onClick={openAddModal}
           className="group bg-primary text-primary-foreground shadow-primary/20 hover:bg-primary/90 flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
         >
           <Plus className="h-5 w-5 transition-transform group-hover:rotate-90" />
@@ -349,7 +343,7 @@ export default function TransactionsPage() {
                           ? "نقدی"
                           : transaction.paymentMethod === "card"
                             ? "کارت بانکی"
-                            : "آنلاین"}
+                            : "آنلاین"}
                       </span>
                     </td>
                     {/* amount */}
@@ -360,7 +354,10 @@ export default function TransactionsPage() {
                           typeClasses[transaction.type],
                         )}
                       >
-                        <span className="whitespace-nowrap">
+                        <span
+                          className="max-w-[120px] truncate whitespace-nowrap"
+                          title={transaction.amount.toLocaleString("fa-IR")}
+                        >
                           {transaction.amount.toLocaleString("fa-IR")}
                         </span>
                         <span>{transaction.type === "income" ? "+" : "-"}</span>
@@ -383,10 +380,7 @@ export default function TransactionsPage() {
                       <div className="flex items-center justify-center gap-2">
                         {/* ✅ دکمه ویرایش */}
                         <button
-                          onClick={() => {
-                            setTransactionForEdit(transaction.id);
-                            setIsAddModalOpen(true);
-                          }}
+                          onClick={() => openEditModal(transaction)}
                           className="text-muted-foreground hover:bg-accent/70 hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
                         >
                           <Edit className="h-4 w-4" />
@@ -455,9 +449,7 @@ export default function TransactionsPage() {
       </div>
 
       {/* transaction modal */}
-      {isAddModalOpen && (
-        <AddTransactionModal setIsAddModalOpen={setIsAddModalOpen} />
-      )}
+      {isAddModalOpen && <AddTransactionModal />}
     </div>
   );
 }
