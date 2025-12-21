@@ -115,7 +115,7 @@ export default function MonthlyReport() {
       {/* ========================================
           📊 Table (UI)
       ======================================== */}
-      <div className="border-border overflow-auto rounded-xl border">
+      <div className="border-border no-scrollbar overflow-auto rounded-xl border">
         <table className="w-full">
           <thead className="bg-muted/50">
             <tr>

@@ -38,6 +38,7 @@ interface TransactionStoreType {
   setFilters: (filters: TransactionStoreType["filters"]) => void;
   setFilterType: (type: TransactionStoreType["filters"]["type"]) => void;
   setFilterStatuses: (statuses: TransactionStatus[]) => void;
+
   setFilterDateRange: (
     range: TransactionStoreType["filters"]["dateRange"],
   ) => void;
@@ -77,6 +78,8 @@ export const useTransactionStore = create<TransactionStoreType>()(
       type: "all",
       statuses: [],
       dateRange: "all",
+      customYear: undefined,
+      customMonth: undefined,
     },
     isAddModalOpen: false,
     typeModal: "add",
