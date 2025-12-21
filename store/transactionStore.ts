@@ -1,5 +1,3 @@
-// store/transactionStore.ts
-
 import {
   Transaction,
   TransactionStatus,
@@ -7,28 +5,24 @@ import {
 } from "@/types/transaction";
 import { create } from "zustand";
 import moment from "jalali-moment";
+import { getCurrentJalaliYearMonth } from "@/utils/date/dateHelpers";
 
 interface TransactionStoreType {
   transactions: Transaction[];
-
-  // ========== Pagination ==========
   currentPage: number;
   itemPerPage: number;
-
-  // ========== Filter ==========
   searchValue: string;
   filters: {
     type: "all" | TransactionType;
     statuses: TransactionStatus[];
-    dateRange: "all" | "today" | "week" | "month";
+    dateRange: "all" | "today" | "week" | "month" | "custom";
+    customYear?: number;
+    customMonth?: number;
   };
-
-  // ========== Modal State ==========
   isAddModalOpen: boolean;
   typeModal: "add" | "edit";
   selectedTransaction: Transaction | null;
 
-  // ========== Actions ==========
   setPage: (page: number) => void;
   nextPage: () => void;
   prevPage: () => void;
@@ -38,7 +32,6 @@ interface TransactionStoreType {
   setFilters: (filters: TransactionStoreType["filters"]) => void;
   setFilterType: (type: TransactionStoreType["filters"]["type"]) => void;
   setFilterStatuses: (statuses: TransactionStatus[]) => void;
-
   setFilterDateRange: (
     range: TransactionStoreType["filters"]["dateRange"],
   ) => void;
@@ -53,13 +46,9 @@ interface TransactionStoreType {
     endItem: number;
     totalItems: number;
   };
-
-  // ========== CRUD Operations ==========
   addTransaction: (transaction: Omit<Transaction, "id">) => void;
   editTransaction: (id: string, transaction: Partial<Transaction>) => void;
   deleteTransaction: (id: string) => void;
-
-  // ========== Modal Actions ==========
   setIsAddModalOpen: (isOpen: boolean) => void;
   setTypeModal: (type: "add" | "edit") => void;
   setSelectedTransaction: (transaction: Transaction | null) => void;
@@ -67,9 +56,14 @@ interface TransactionStoreType {
   openEditModal: (transaction: Transaction) => void;
 }
 
-export const useTransactionStore = create<TransactionStoreType>()(
-  (set, get) => ({
-    // ========== Initial State ==========
+export const useTransactionStore = create<TransactionStoreType>()((
+  set,
+  get,
+) => {
+  const { year: currentYear, month: currentMonth } =
+    getCurrentJalaliYearMonth();
+
+  return {
     transactions: [],
     currentPage: 1,
     itemPerPage: 10,
@@ -77,15 +71,14 @@ export const useTransactionStore = create<TransactionStoreType>()(
     filters: {
       type: "all",
       statuses: [],
-      dateRange: "all",
-      customYear: undefined,
-      customMonth: undefined,
+      dateRange: "month",
+      customYear: currentYear,
+      customMonth: currentMonth,
     },
     isAddModalOpen: false,
     typeModal: "add",
     selectedTransaction: null,
 
-    // ========== Pagination ==========
     setPage: (page) => set({ currentPage: page }),
     nextPage: () => {
       const { currentPage } = get();
@@ -101,11 +94,7 @@ export const useTransactionStore = create<TransactionStoreType>()(
       }
     },
     setItemsPerPage: (items) => set({ itemPerPage: items, currentPage: 1 }),
-
-    // ========== Transaction Data ==========
     setTransactions: (data) => set({ transactions: data, currentPage: 1 }),
-
-    // ========== Filters ==========
     setSearchValue: (value) => set({ searchValue: value, currentPage: 1 }),
     setFilters: (filters) => set({ filters, currentPage: 1 }),
     setFilterType: (type) =>
@@ -123,25 +112,88 @@ export const useTransactionStore = create<TransactionStoreType>()(
         filters: { ...state.filters, dateRange },
         currentPage: 1,
       })),
-    resetFilters: () =>
+
+    resetFilters: () => {
+      const { year, month } = getCurrentJalaliYearMonth();
       set({
         searchValue: "",
-        filters: { type: "all", statuses: [], dateRange: "all" },
+        filters: {
+          type: "all",
+          statuses: [],
+          dateRange: "month",
+          customYear: year,
+          customMonth: month,
+        },
         currentPage: 1,
-      }),
-    resetAll: () =>
+      });
+    },
+
+    resetAll: () => {
+      const { year, month } = getCurrentJalaliYearMonth();
       set({
         currentPage: 1,
         itemPerPage: 10,
         searchValue: "",
-        filters: { type: "all", statuses: [], dateRange: "all" },
-      }),
+        filters: {
+          type: "all",
+          statuses: [],
+          dateRange: "month",
+          customYear: year,
+          customMonth: month,
+        },
+      });
+    },
 
-    // ========== Computed ==========
+    // ✅ تابع اصلی - تصحیح شده
     getFilteredTransactions: () => {
       const { transactions, searchValue, filters } = get();
       let filtered = [...transactions];
 
+      // ========== ۱. فیلتر تاریخ (اولویت اول) ==========
+      if (filters.dateRange !== "all") {
+        if (
+          filters.dateRange === "custom" &&
+          filters.customYear &&
+          filters.customMonth
+        ) {
+          filtered = filtered.filter((transaction) => {
+            const transactionDate = moment(transaction.date, "jYYYY/jMM/jDD");
+            const filterYear = Number(filters.customYear);
+            const filterMonth = Number(filters.customMonth);
+
+            return (
+              transactionDate.jYear() === filterYear &&
+              transactionDate.jMonth() + 1 === filterMonth
+            );
+          });
+        } else {
+          const now = moment().locale("fa");
+          let startDate: moment.Moment;
+
+          switch (filters.dateRange) {
+            case "today":
+              startDate = now.clone().startOf("day");
+              break;
+            case "week":
+              startDate = now.clone().startOf("week");
+              break;
+            case "month":
+              startDate = now.clone().startOf("jMonth");
+              break;
+            default:
+              startDate = now;
+          }
+
+          filtered = filtered.filter((t) => {
+            const transactionDate = moment(t.date, "jYYYY/jMM/jDD").locale(
+              "fa",
+            );
+            return transactionDate.isSameOrAfter(startDate, "day");
+          });
+        }
+      }
+
+      // ========== ۲. فیلتر جستجو ==========
       if (searchValue.trim()) {
         const search = searchValue.toLowerCase();
         filtered = filtered.filter(
@@ -151,36 +203,14 @@ export const useTransactionStore = create<TransactionStoreType>()(
         );
       }
 
+      // ========== ۳. فیلتر نوع ==========
       if (filters.type !== "all") {
         filtered = filtered.filter((t) => t.type === filters.type);
       }
 
+      // ========== ۴. فیلتر وضعیت ==========
       if (filters.statuses.length > 0) {
         filtered = filtered.filter((t) => filters.statuses.includes(t.status));
-      }
-
-      if (filters.dateRange !== "all") {
-        const now = moment().locale("fa");
-        let startDate: moment.Moment;
-
-        switch (filters.dateRange) {
-          case "today":
-            startDate = now.clone().startOf("day");
-            break;
-          case "week":
-            startDate = now.clone().startOf("week");
-            break;
-          case "month":
-            startDate = now.clone().startOf("jMonth");
-            break;
-          default:
-            startDate = now;
-        }
-
-        filtered = filtered.filter((t) => {
-          const transactionDate = moment(t.date, "jYYYY/jMM/jDD").locale("fa");
-          return transactionDate.isSameOrAfter(startDate, "day");
-        });
       }
 
       return filtered;
@@ -210,7 +240,6 @@ export const useTransactionStore = create<TransactionStoreType>()(
       };
     },
 
-    // ========== CRUD Operations ==========
     addTransaction: (transaction) =>
       set((state) => ({
         transactions: [
@@ -234,7 +263,6 @@ export const useTransactionStore = create<TransactionStoreType>()(
         transactions: state.transactions.filter((t) => t.id !== id),
       })),
 
-    // ========== Modal Actions ==========
     setIsAddModalOpen: (isOpen) => set({ isAddModalOpen: isOpen }),
     setTypeModal: (type) => set({ typeModal: type }),
     setSelectedTransaction: (transaction) =>
@@ -253,5 +281,5 @@ export const useTransactionStore = create<TransactionStoreType>()(
         typeModal: "edit",
         selectedTransaction: transaction,
       }),
-  }),
-);
+  };
+});

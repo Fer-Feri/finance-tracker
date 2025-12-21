@@ -19,23 +19,24 @@ import { useTransactionStore } from "@/store/transactionStore";
 import { useEffect, useRef, useState } from "react";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import AddTransactionModal from "@/components/transaction/AddTransactionModal";
+import { getCurrentJalaliYearMonth } from "@/utils/date/dateHelpers";
 
 // ============================================================
 // CONSTANTS
 // ============================================================
 const JALALI_MONTHS = [
-  { id: "1", name: "فروردین" },
-  { id: "2", name: "اردیبهشت" },
-  { id: "3", name: "خرداد" },
-  { id: "4", name: "تیر" },
-  { id: "5", name: "مرداد" },
-  { id: "6", name: "شهریور" },
-  { id: "7", name: "مهر" },
-  { id: "8", name: "آبان" },
-  { id: "9", name: "آذر" },
-  { id: "10", name: "دی" },
-  { id: "11", name: "بهمن" },
-  { id: "12", name: "اسفند" },
+  { id: 1, name: "فروردین" },
+  { id: 2, name: "اردیبهشت" },
+  { id: 3, name: "خرداد" },
+  { id: 4, name: "تیر" },
+  { id: 5, name: "مرداد" },
+  { id: 6, name: "شهریور" },
+  { id: 7, name: "مهر" },
+  { id: 8, name: "آبان" },
+  { id: 9, name: "آذر" },
+  { id: 10, name: "دی" },
+  { id: 11, name: "بهمن" },
+  { id: 12, name: "اسفند" },
 ];
 
 const dateRangeItems: {
@@ -85,16 +86,10 @@ const CURRENT_YEAR = 1404;
 // COMPONENT
 // ============================================================
 export default function TransactionsPage() {
-  // ✅ State مدیریت باز/بسته بودن منوی فیلتر اصلی
   const [isMenuFilterOpen, setIsMenuFilterOpen] = useState<boolean>(false);
-
-  // ✅ State مدیریت باز/بسته بودن بخش فیلتر سفارشی (تاریخ)
   const [isCustomFilterOpen, setIsCustomFilterOpen] = useState<boolean>(false);
 
-  // ✅ Ref برای تشخیص کلیک خارج از منوی فیلتر
   const menuFilterRef = useRef<HTMLDivElement>(null);
-
-  // ✅ بستن منوی فیلتر هنگام کلیک خارج از آن
   useClickOutside(menuFilterRef, () => setIsMenuFilterOpen(false));
 
   const {
@@ -117,6 +112,14 @@ export default function TransactionsPage() {
     isAddModalOpen,
   } = useTransactionStore();
 
+  // ✅ State موقت برای سال و ماه انتخاب شده (قبل از اعمال)
+  const [tempYear, setTempYear] = useState<number>(
+    filters.customYear || getCurrentJalaliYearMonth().year,
+  );
+  const [tempMonth, setTempMonth] = useState<number>(
+    filters.customMonth || getCurrentJalaliYearMonth().month,
+  );
+
   const filteredTransactions = getFilteredTransactions();
   const { totalPages, startItem, endItem, totalItems } = getPageInfo();
 
@@ -128,6 +131,41 @@ export default function TransactionsPage() {
   useEffect(() => {
     setTransactions(transactionsData);
   }, [setTransactions]);
+
+  // ✅ هنگام باز شدن بخش سفارشی، مقادیر فعلی فیلتر رو توی state موقت بریز
+  useEffect(() => {
+    if (filters.customYear) setTempYear(filters.customYear);
+    if (filters.customMonth) setTempMonth(filters.customMonth);
+  }, [filters.customYear, filters.customMonth]);
+
+  // ============================================================
+  // HANDLERS
+  // ============================================================
+
+  // ✅ اعمال فیلتر سفارشی
+  const handleApplyCustomFilter = () => {
+    if (!tempYear || !tempMonth) return;
+    if (tempYear && tempMonth) {
+      setFilters({
+        ...filters,
+        dateRange: "custom",
+        customYear: tempYear,
+        customMonth: tempMonth,
+      });
+      setIsCustomFilterOpen(false);
+    }
+  };
+
+  // ✅ پاک کردن فیلتر سفارشی
+  const handleClearCustomFilter = () => {
+    const { year, month } = getCurrentJalaliYearMonth();
+    setFilters({
+      ...filters,
+      dateRange: "month", // برگشت به ماه جاری
+      customYear: year,
+      customMonth: month,
+    });
+  };
 
   const getVisiblePages = () => {
     const pages = [];
@@ -164,7 +202,7 @@ export default function TransactionsPage() {
   return (
     <div className="h-full space-y-8 p-2">
       {/* ============================================================ */}
-      {/* HEADER - عنوان صفحه */}
+      {/* HEADER */}
       {/* ============================================================ */}
       <div className="flex flex-wrap justify-between gap-4">
         <div className="space-y-1">
@@ -177,21 +215,17 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      {/* ✅ خط جداکننده */}
       <div className="via-border h-px w-full bg-gradient-to-r from-transparent to-transparent" />
 
       {/* ============================================================ */}
-      {/* SEARCH & FILTER - جستجو و فیلترها */}
+      {/* SEARCH & FILTER */}
       {/* ============================================================ */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        {/* ✅ بخش جستجو و دکمه فیلتر */}
         <div className="border-border bg-card relative flex w-full max-w-xl items-center rounded-2xl border p-1 shadow-sm">
-          {/* آیکون جستجو */}
           <div className="text-muted-foreground flex h-10 w-10 items-center justify-center">
             <Search className="h-5 w-5" />
           </div>
 
-          {/* فیلد ورودی جستجو */}
           <input
             type="text"
             value={searchValue}
@@ -200,7 +234,6 @@ export default function TransactionsPage() {
             className="text-foreground placeholder:text-muted-foreground/70 flex-1 bg-transparent text-sm focus:outline-none"
           />
 
-          {/* دکمه پاک کردن جستجو (فقط وقتی مقداری وارد شده) */}
           {searchValue && (
             <span
               className="text-primary/70 hover:text-primary ml-3 cursor-pointer transition-colors"
@@ -211,10 +244,9 @@ export default function TransactionsPage() {
           )}
 
           {/* ============================================================ */}
-          {/* FILTER DROPDOWN - منوی کشویی فیلترها */}
+          {/* FILTER DROPDOWN */}
           {/* ============================================================ */}
           <div className="relative" ref={menuFilterRef}>
-            {/* دکمه باز/بسته کردن منوی فیلتر */}
             <button
               onClick={() => setIsMenuFilterOpen((prev) => !prev)}
               className="bg-secondary/80 text-secondary-foreground hover:bg-secondary relative flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors"
@@ -223,11 +255,10 @@ export default function TransactionsPage() {
               <span>فیلترها</span>
             </button>
 
-            {/* ✅ محتوای منوی فیلتر (فقط زمانی که باز باشد نمایش داده می‌شود) */}
             {isMenuFilterOpen && (
               <div className="bg-popover border-primary/70 no-scrollbar absolute top-[calc(100%+0.5rem)] left-0 z-50 max-h-[500px] w-64 overflow-auto rounded-xl border p-4 shadow-2xl md:w-80">
                 {/* ============================================================ */}
-                {/* TYPE FILTER - فیلتر نوع تراکنش (درآمد/هزینه/همه) */}
+                {/* TYPE FILTER */}
                 {/* ============================================================ */}
                 <div className="space-y-3">
                   <p className="text-sm font-semibold">نوع تراکنش</p>
@@ -257,7 +288,7 @@ export default function TransactionsPage() {
                 </div>
 
                 {/* ============================================================ */}
-                {/* STATUS FILTER - فیلتر وضعیت تراکنش (چندگزینه‌ای) */}
+                {/* STATUS FILTER */}
                 {/* ============================================================ */}
                 <div className="mt-6 space-y-3">
                   <p className="text-sm font-semibold">وضعیت تراکنش</p>
@@ -287,7 +318,7 @@ export default function TransactionsPage() {
                 </div>
 
                 {/* ============================================================ */}
-                {/* DATE RANGE FILTER - فیلتر بازه زمانی از پیش تعریف شده */}
+                {/* DATE RANGE FILTER */}
                 {/* ============================================================ */}
                 <div className="mt-6 space-y-3">
                   <p className="text-sm font-semibold">بازه زمانی</p>
@@ -313,16 +344,14 @@ export default function TransactionsPage() {
                 </div>
 
                 {/* ============================================================ */}
-                {/* CUSTOM DATE FILTER - فیلتر تاریخ سفارشی (سال و ماه) */}
+                {/* CUSTOM DATE FILTER */}
                 {/* ============================================================ */}
                 <div className="bg-muted/40 mt-6 space-y-3 rounded-lg p-3 shadow-sm">
-                  {/* ✅ هدر قابل کلیک برای باز/بسته کردن بخش سفارشی */}
                   <button
                     onClick={() => setIsCustomFilterOpen(!isCustomFilterOpen)}
                     className="text-muted-foreground hover:text-foreground flex w-full items-center justify-between text-xs font-semibold transition-colors"
                   >
                     <span>📅 انتخاب تاریخ دقیق (سفارشی)</span>
-                    {/* آیکون فلش بالا/پایین بسته به وضعیت باز/بسته */}
                     {isCustomFilterOpen ? (
                       <ChevronUp className="h-4 w-4" />
                     ) : (
@@ -330,17 +359,19 @@ export default function TransactionsPage() {
                     )}
                   </button>
 
-                  {/* ✅ محتوای فیلتر سفارشی (فقط زمانی که باز است نمایش داده می‌شود) */}
                   {isCustomFilterOpen && (
                     <div className="space-y-3 pt-2">
-                      {/* ============================================================ */}
-                      {/* SELECT YEAR - انتخاب سال */}
-                      {/* ============================================================ */}
+                      {/* ✅ SELECT YEAR - اتصال به State */}
                       <div className="space-y-1.5">
                         <label className="text-foreground text-xs font-medium">
                           سال
                         </label>
-                        <select className="border-border bg-background text-foreground hover:border-primary/50 focus:border-primary focus:ring-primary/30 w-full rounded-md border px-3 py-2.5 text-sm transition-all focus:ring-2 focus:outline-none">
+                        <select
+                          value={tempYear || ""}
+                          onChange={(e) => setTempYear(Number(e.target.value))}
+                          className="border-border bg-background text-foreground hover:border-primary/50 focus:border-primary focus:ring-primary/30 w-full rounded-md border px-3 py-2.5 text-sm transition-all focus:ring-2 focus:outline-none"
+                        >
+                          <option value="">-- انتخاب سال --</option>
                           {Array.from({ length: 4 }).map((_, index) => {
                             const year = CURRENT_YEAR - index;
                             return (
@@ -352,14 +383,17 @@ export default function TransactionsPage() {
                         </select>
                       </div>
 
-                      {/* ============================================================ */}
-                      {/* SELECT MONTH - انتخاب ماه */}
-                      {/* ============================================================ */}
+                      {/* ✅ SELECT MONTH - اتصال به State */}
                       <div className="space-y-1.5">
                         <label className="text-foreground text-xs font-medium">
                           ماه
                         </label>
-                        <select className="border-border bg-background text-foreground hover:border-primary/50 focus:border-primary focus:ring-primary/30 w-full rounded-md border px-3 py-2.5 text-sm transition-all focus:ring-2 focus:outline-none">
+                        <select
+                          value={tempMonth || ""}
+                          onChange={(e) => setTempMonth(Number(e.target.value))}
+                          className="border-border bg-background text-foreground hover:border-primary/50 focus:border-primary focus:ring-primary/30 w-full rounded-md border px-3 py-2.5 text-sm transition-all focus:ring-2 focus:outline-none"
+                        >
+                          <option value="">-- انتخاب ماه --</option>
                           {JALALI_MONTHS.map((month) => (
                             <option key={month.id} value={month.id}>
                               {month.name}
@@ -368,17 +402,20 @@ export default function TransactionsPage() {
                         </select>
                       </div>
 
-                      {/* ============================================================ */}
-                      {/* ACTION BUTTONS - دکمه‌های اعمال و پاک کردن فیلتر */}
-                      {/* ============================================================ */}
+                      {/* ✅ ACTION BUTTONS - اتصال به Handler ها */}
                       <div className="flex gap-2 pt-1">
-                        {/* ✅ دکمه اعمال فیلتر تاریخ */}
-                        <button className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-md py-2.5 text-sm font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98]">
+                        <button
+                          onClick={handleApplyCustomFilter}
+                          disabled={!tempYear || !tempMonth}
+                          className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-md py-2.5 text-sm font-medium shadow-sm transition-all hover:shadow-md active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
                           ✓ اعمال
                         </button>
 
-                        {/* ✅ دکمه پاک کردن فیلتر سفارشی */}
-                        <button className="bg-destructive/10 text-destructive hover:bg-destructive/20 flex-1 rounded-md py-2.5 text-sm font-medium transition-all active:scale-[0.98]">
+                        <button
+                          onClick={handleClearCustomFilter}
+                          className="bg-destructive/10 text-destructive hover:bg-destructive/20 flex-1 rounded-md py-2.5 text-sm font-medium transition-all active:scale-[0.98]"
+                        >
                           ✕ پاک کردن
                         </button>
                       </div>
@@ -387,7 +424,7 @@ export default function TransactionsPage() {
                 </div>
 
                 {/* ============================================================ */}
-                {/* CLEAR ALL FILTERS - دکمه پاک کردن همه فیلترها */}
+                {/* CLEAR ALL FILTERS */}
                 {/* ============================================================ */}
                 <button
                   onClick={resetFilters}
@@ -401,7 +438,7 @@ export default function TransactionsPage() {
         </div>
 
         {/* ============================================================ */}
-        {/* ADD TRANSACTION BUTTON - دکمه افزودن تراکنش جدید */}
+        {/* ADD TRANSACTION BUTTON */}
         {/* ============================================================ */}
         <button
           onClick={openAddModal}
@@ -413,7 +450,7 @@ export default function TransactionsPage() {
       </div>
 
       {/* ============================================================ */}
-      {/* TABLE - جدول نمایش تراکنش‌ها */}
+      {/* TABLE */}
       {/* ============================================================ */}
       <div className="border-border bg-card w-full rounded-xl shadow-sm">
         <div className="no-scrollbar overflow-x-auto">
@@ -445,7 +482,6 @@ export default function TransactionsPage() {
 
                 return (
                   <tr key={transaction.id} className="border-border border-b">
-                    {/* ✅ ستون نوع و توضیحات */}
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div
@@ -468,21 +504,18 @@ export default function TransactionsPage() {
                       </div>
                     </td>
 
-                    {/* ✅ ستون دسته‌بندی */}
                     <td className="p-4 text-center">
                       <span className="bg-secondary/80 text-secondary-foreground inline-block rounded-lg px-3 py-1 text-xs font-medium">
                         {TRANSACTION_CATEGORIES[transaction.category]}
                       </span>
                     </td>
 
-                    {/* ✅ ستون تاریخ */}
                     <td className="p-4 text-center">
                       <span className="text-muted-foreground px-4 py-4 text-center text-xs font-medium tabular-nums">
                         {transaction.date}
                       </span>
                     </td>
 
-                    {/* ✅ ستون روش پرداخت */}
                     <td className="text-muted-foreground p-4 text-center text-xs">
                       <span>
                         {transaction.paymentMethod === "cash"
@@ -493,7 +526,6 @@ export default function TransactionsPage() {
                       </span>
                     </td>
 
-                    {/* ✅ ستون مبلغ */}
                     <td className="p-4 text-center">
                       <div
                         className={cn(
@@ -511,7 +543,6 @@ export default function TransactionsPage() {
                       </div>
                     </td>
 
-                    {/* ✅ ستون وضعیت */}
                     <td className="p-4 text-center">
                       <span
                         className={cn(
@@ -523,10 +554,8 @@ export default function TransactionsPage() {
                       </span>
                     </td>
 
-                    {/* ✅ ستون عملیات (ویرایش و حذف) */}
                     <td className="table-cell p-4 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        {/* دکمه ویرایش */}
                         <button
                           onClick={() => openEditModal(transaction)}
                           className="text-muted-foreground hover:bg-accent/70 hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
@@ -535,7 +564,6 @@ export default function TransactionsPage() {
                           <Edit className="h-4 w-4" />
                         </button>
 
-                        {/* دکمه حذف */}
                         <button
                           onClick={() => handleDelete(transaction.id)}
                           className="text-muted-foreground hover:bg-destructive/70 hover:text-destructive-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
@@ -554,7 +582,7 @@ export default function TransactionsPage() {
       </div>
 
       {/* ============================================================ */}
-      {/* EMPTY STATE - حالت خالی (وقتی نتیجه‌ای یافت نشد) */}
+      {/* EMPTY STATE */}
       {/* ============================================================ */}
       {filteredTransactions.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -568,14 +596,13 @@ export default function TransactionsPage() {
       )}
 
       {/* ============================================================ */}
-      {/* PAGINATION - صفحه‌بندی */}
+      {/* PAGINATION */}
       {/* ============================================================ */}
       <div className="flex items-center justify-between opacity-70">
         <p className="text-xs md:text-sm">
           نمایش {startItem}–{endItem} از {totalItems} تراکنش
         </p>
         <div className="flex gap-2">
-          {/* دکمه صفحه قبل */}
           <button
             className="border-primary/60 rounded-md border px-2.5 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
             onClick={prevPage}
@@ -584,7 +611,6 @@ export default function TransactionsPage() {
             قبلی
           </button>
 
-          {/* نمایش صفحه اول و ... */}
           {currentPage > 3 && (
             <>
               <button onClick={() => setPage(1)}>1</button>
@@ -592,7 +618,6 @@ export default function TransactionsPage() {
             </>
           )}
 
-          {/* نمایش شماره صفحات قابل مشاهده */}
           {getVisiblePages().map((page) => (
             <button
               key={page}
@@ -608,7 +633,6 @@ export default function TransactionsPage() {
             </button>
           ))}
 
-          {/* نمایش ... و صفحه آخر */}
           {currentPage < totalPages - 2 && (
             <>
               <span className="px-2">…</span>
@@ -616,7 +640,6 @@ export default function TransactionsPage() {
             </>
           )}
 
-          {/* دکمه صفحه بعد */}
           <button
             className="border-primary/60 rounded-md border px-2.5 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50"
             onClick={nextPage}
@@ -628,7 +651,7 @@ export default function TransactionsPage() {
       </div>
 
       {/* ============================================================ */}
-      {/* TRANSACTION MODAL - مودال افزودن/ویرایش تراکنش */}
+      {/* TRANSACTION MODAL */}
       {/* ============================================================ */}
       {isAddModalOpen && <AddTransactionModal />}
     </div>
