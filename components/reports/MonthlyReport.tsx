@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   TrendingUp,
   TrendingDown,
@@ -11,70 +11,71 @@ import {
   FileText,
   Minus,
 } from "lucide-react";
-import { formatCurrency } from "@/lib/formatCurrency";
-import { useReportsStore } from "@/store/useReportsStore";
-import { useTransactionModalStore } from "@/store/transactionModal-store";
+import { cn } from "@/lib/utils";
+import { useMonthlyReportData } from "@/hooks/useMonthlyReportData";
+import { useMonthlyBreakdown } from "@/hooks/useMonthlyBreakdown";
 
 // ====================================================================
-// 📊 کامپوننت گزارش ماهانه
+// 📊 MonthlyReport – UI ONLY
 // ====================================================================
 
 export default function MonthlyReport() {
-  // ⬅️ State مدیریت سال انتخاب شده
+  // ✅ فقط state مربوط به دکمه‌های سال
   const [selectedYear, setSelectedYear] = useState<number>(1404);
 
-  // ⬅️ دریافت تراکنش‌ها از Store (فقط subscribe به transactions)
-  const transactions = useTransactionModalStore((state) => state.transactions);
+  const CURRENT_YEAR = 1404;
+  const MIN_YEAR = CURRENT_YEAR - 1;
 
-  // ⬅️ محاسبه گزارش با useMemo برای جلوگیری از Infinite Loop
-  const report = useMemo(() => {
-    return useReportsStore.getState().getYearlyReport(selectedYear);
-  }, [selectedYear, transactions]);
+  // 🧪 داده‌ی نمایشی (Mock)
+  const months = [
+    { id: 1, name: "فروردین" },
+    { id: 2, name: "اردیبهشت" },
+    { id: 3, name: "خرداد" },
+    { id: 4, name: "تیر" },
+    { id: 5, name: "مرداد" },
+    { id: 6, name: "شهریور" },
+    { id: 7, name: "مهر" },
+    { id: 8, name: "آبان" },
+    { id: 9, name: "آذر" },
+    { id: 10, name: "دی" },
+    { id: 11, name: "بهمن" },
+    { id: 12, name: "اسفند" },
+  ];
 
-  // ⬅️ تابع رنگ‌بندی بر اساس مثبت/منفی بودن
-  const getProfitColor = (value: number): string => {
-    if (value > 0) return "text-green-600 dark:text-green-400";
-    if (value < 0) return "text-red-600 dark:text-red-400";
-    return "text-muted-foreground";
-  };
-
-  // ⬅️ محاسبه حداکثر مقادیر برای نمودار نسبی
-  const maxIncome = Math.max(...report.monthlyData.map((m) => m.income));
-  const maxExpense = Math.max(...report.monthlyData.map((m) => m.expense));
+  const yearData = useMonthlyReportData(selectedYear);
+  const monthData = useMonthlyBreakdown(selectedYear);
 
   return (
     <div className="space-y-6">
       {/* ========================================
-          🎯 بخش هدر: انتخاب سال
+          🎯 Header – Year Selector
       ======================================== */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex-col items-center space-y-1">
           <Calendar className="text-primary h-5 w-5" />
           <h2 className="text-xs font-bold md:text-xl">
             گزارش ماهانه سال {selectedYear}
           </h2>
+          <span className="text-muted-foreground text-xs md:text-sm">
+            ({yearData.transactionCount} تراکنش)
+          </span>
         </div>
 
         <div className="flex items-center gap-2 md:gap-6">
-          {/* دکمه سال قبل */}
           <button
-            onClick={() => setSelectedYear((prev) => prev - 1)}
-            disabled={selectedYear <= 1400}
-            className="border-border bg-background hover:bg-muted rounded-lg border p-2 transition-colors disabled:opacity-50"
+            onClick={() => setSelectedYear((y) => y - 1)}
+            disabled={selectedYear <= MIN_YEAR}
+            className="border-border bg-background hover:bg-muted rounded-lg border p-2"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
 
-          {/* نمایش سال فعلی */}
-          <span className="text-center text-sm font-medium">
-            {selectedYear}
-          </span>
+          <span className="text-sm font-medium">{selectedYear}</span>
 
-          {/* دکمه سال بعد */}
           <button
-            onClick={() => setSelectedYear((prev) => prev + 1)}
-            disabled={selectedYear >= 1404}
-            className="border-border bg-background hover:bg-muted rounded-lg border p-2 transition-colors"
+            onClick={() => setSelectedYear((y) => y + 1)}
+            disabled={selectedYear === CURRENT_YEAR}
+            className="border-border bg-background hover:bg-muted rounded-lg border p-2"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -82,212 +83,177 @@ export default function MonthlyReport() {
       </div>
 
       {/* ========================================
-          💳 بخش کارت‌های خلاصه
+          💳 Summary Cards (UI)
       ======================================== */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* ⬅️ کارت کل درآمد */}
-        <div className="border-border rounded-xl border bg-gradient-to-br from-green-50 to-green-100 p-4 dark:from-green-950/20 dark:to-green-900/20">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-muted-foreground text-sm font-medium">
-              کل درآمد
-            </span>
-            <TrendingUp className="h-4 w-4 text-green-600" />
-          </div>
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-            {formatCurrency(report.totalIncome)}
-          </p>
-          <p className="text-muted-foreground mt-1 text-xs">تومان</p>
-        </div>
-
-        {/* ⬅️ کارت کل هزینه */}
-        <div className="border-border rounded-xl border bg-gradient-to-br from-red-50 to-red-100 p-4 dark:from-red-950/20 dark:to-red-900/20">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-muted-foreground text-sm font-medium">
-              کل هزینه
-            </span>
-            <TrendingDown className="h-4 w-4 text-red-600" />
-          </div>
-          <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-            {formatCurrency(report.totalExpense)}
-          </p>
-          <p className="text-muted-foreground mt-1 text-xs">تومان</p>
-        </div>
-
-        {/* ⬅️ کارت سود/زیان خالص */}
-        <div className="border-border rounded-xl border bg-gradient-to-br from-blue-50 to-blue-100 p-4 dark:from-blue-950/20 dark:to-blue-900/20">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-muted-foreground text-sm font-medium">
-              سود/زیان خالص
-            </span>
-            <DollarSign className="h-4 w-4 text-blue-600" />
-          </div>
-          <p
-            className={`text-2xl font-bold ${getProfitColor(report.totalProfit)}`}
-          >
-            {formatCurrency(report.totalProfit)}
-          </p>
-          <p className="text-muted-foreground mt-1 text-xs">تومان</p>
-        </div>
-
-        {/* ⬅️ کارت میانگین سود ماهانه */}
-        <div className="border-border rounded-xl border bg-gradient-to-br from-purple-50 to-purple-100 p-4 dark:from-purple-950/20 dark:to-purple-900/20">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-muted-foreground text-sm font-medium">
-              میانگین سود ماهانه
-            </span>
-            <Calendar className="h-4 w-4 text-purple-600" />
-          </div>
-          <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-            {formatCurrency(Math.round(report.avgMonthlyProfit))}
-          </p>
-          <p className="text-muted-foreground mt-1 text-xs">تومان</p>
-        </div>
+        <SummaryCard
+          title="کل درآمد"
+          value={yearData.totalIncome}
+          icon={<TrendingUp className="h-5 w-5 text-green-600" />}
+          colorClass="bg-primary/10 text-primary"
+        />
+        <SummaryCard
+          title="کل هزینه"
+          value={yearData.totalExpense}
+          icon={<TrendingDown className="h-5 w-5 text-red-600" />}
+          colorClass="bg-destructive/20 text-destructive"
+        />
+        <SummaryCard
+          title="سود / زیان"
+          value={yearData.profit}
+          icon={<DollarSign className="h-5 w-5 text-orange-400" />}
+          colorClass="bg-accent/20 text-yellow-600"
+        />
+        <SummaryCard
+          title="میانگین سود ماهانه"
+          value={yearData.avgMonthlyProfit}
+          icon={<Calendar className="h-5 w-5 text-emerald-500" />}
+          colorClass="bg-secondary/5 text-secondary"
+        />
       </div>
 
       {/* ========================================
-          📊 بخش جدول ماه‌ها
+          📊 Table (UI)
       ======================================== */}
-      <div className="border-border overflow-hidden rounded-xl border">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            {/* ⬅️ سر جدول */}
-            <thead className="bg-muted/50 dark:bg-muted/10">
-              <tr>
-                <th className="px-4 py-3 text-right text-sm font-semibold">
-                  ماه
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold">
-                  درآمد
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold">
-                  هزینه
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold">
-                  سود/زیان
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold">
-                  تغییر
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold">
-                  نمودار
-                </th>
-              </tr>
-            </thead>
+      <div className="border-border overflow-auto rounded-xl border">
+        <table className="w-full">
+          <thead className="bg-muted/50">
+            <tr>
+              <th className="px-4 py-3 text-right text-sm font-semibold">
+                ماه
+              </th>
+              <th className="px-4 py-3 text-right text-sm font-semibold">
+                درآمد
+              </th>
+              <th className="px-4 py-3 text-right text-sm font-semibold">
+                هزینه
+              </th>
+              <th className="px-4 py-3 text-right text-sm font-semibold">
+                سود/زیان
+              </th>
+              <th className="px-4 py-3 text-right text-sm font-semibold">
+                تغییر
+              </th>
+              <th className="px-4 py-3 text-right text-sm font-semibold">
+                نمودار
+              </th>
+            </tr>
+          </thead>
 
-            {/* ⬅️ بدنه جدول */}
-            <tbody className="divide-border divide-y">
-              {report.monthlyData.map((month) => (
+          <tbody className="divide-border divide-y">
+            {months.map((month) => {
+              const data = monthData[month.id - 1];
+              return (
                 <tr
-                  key={month.monthNumber}
-                  className="hover:bg-muted/10 cursor-pointer transition-colors"
-                  onClick={() => {
-                    const monthTransactions = useReportsStore
-                      .getState()
-                      .getMonthTransactions(selectedYear, month.monthNumber);
-                    console.log(
-                      `${month.monthName}: ${monthTransactions.length} تراکنش`,
-                      monthTransactions,
-                    );
-                  }}
+                  key={month.id}
+                  className="hover:bg-muted/10 transition-colors"
                 >
-                  {/* ⬅️ ستون ۱: نام ماه + تعداد تراکنش */}
+                  {/* ستون ماه */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="bg-primary/10 text-primary flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold">
-                        {month.monthNumber}
+                        {month.id}
                       </div>
                       <div>
-                        <div className="font-medium">{month.monthName}</div>
-                        {month.transactionCount > 0 && (
-                          <div className="text-muted-foreground flex items-center gap-1 text-xs">
-                            <FileText className="h-3 w-3" />
-                            {month.transactionCount} تراکنش
-                          </div>
-                        )}
+                        <div className="font-medium">{month.name}</div>
+                        <div className="text-muted-foreground flex items-center gap-1 text-xs">
+                          <FileText className="h-3 w-3" />
+                          {data.monthTransactionCount} تراکنش
+                        </div>
                       </div>
                     </div>
                   </td>
 
-                  {/* ⬅️ ستون ۲: مبلغ درآمد */}
-                  <td className="px-4 py-3 text-green-600 dark:text-green-400">
-                    {formatCurrency(month.income)}
+                  {/* ستون درآمد */}
+                  <td className="px-4 py-3 text-green-600 tabular-nums">
+                    {data.monthIncome > 0
+                      ? data.monthIncome.toLocaleString("fa-IR")
+                      : "—"}
                   </td>
 
-                  {/* ⬅️ ستون ۳: مبلغ هزینه */}
-                  <td className="px-4 py-3 text-red-600 dark:text-red-400">
-                    {formatCurrency(month.expense)}
+                  {/* ستون هزینه */}
+                  <td className="px-4 py-3 text-red-400 tabular-nums">
+                    {data.monthExpense > 0
+                      ? data.monthExpense.toLocaleString("fa-IR")
+                      : "—"}
                   </td>
 
-                  {/* ⬅️ ستون ۴: سود/زیان */}
+                  {/* ستون سود/زیان */}
                   <td
-                    className={`px-4 py-3 font-semibold ${getProfitColor(month.profit)}`}
+                    className={`px-4 py-3 font-semibold tabular-nums ${
+                      data.monthProfit > 0
+                        ? "text-green-600"
+                        : data.monthProfit < 0
+                          ? "text-red-600"
+                          : "text-muted-foreground"
+                    }`}
                   >
-                    {formatCurrency(month.profit)}
+                    {data.monthTransactionCount > 0
+                      ? data.monthProfit.toLocaleString("fa-IR")
+                      : "—"}
                   </td>
 
-                  {/* ⬅️ ستون ۵: درصد تغییر نسبت به ماه قبل */}
+                  {/* ستون نرخ سود */}
                   <td className="px-4 py-3">
-                    {month.changePercent === 0 ? (
+                    {data.monthIncome > 0 ? (
                       <div className="flex items-center gap-1">
-                        <Minus className="text-muted-foreground h-3 w-3" />
-                        <span className="text-muted-foreground text-sm">
-                          0%
+                        {data.monthProfit > 0 ? (
+                          <TrendingUp className="h-3 w-3 text-green-600" />
+                        ) : data.monthProfit < 0 ? (
+                          <TrendingDown className="h-3 w-3 text-red-600" />
+                        ) : (
+                          <Minus className="text-muted-foreground h-3 w-3" />
+                        )}
+                        <span
+                          className={`text-sm tabular-nums ${
+                            data.monthProfit > 0
+                              ? "text-green-600"
+                              : data.monthProfit < 0
+                                ? "text-red-600"
+                                : "text-muted-foreground"
+                          }`}
+                        >
+                          {data.monthProfitPercent}%
                         </span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1">
-                        {month.changePercent > 0 ? (
-                          <TrendingUp className="h-3 w-3 text-green-600" />
-                        ) : (
-                          <TrendingDown className="h-3 w-3 text-red-600" />
-                        )}
-                        <span
-                          className={`text-sm font-medium ${getProfitColor(month.changePercent)}`}
-                        >
-                          {Math.abs(month.changePercent).toFixed(1)}%
-                        </span>
+                      <div className="text-muted-foreground flex items-center gap-1">
+                        <Minus className="h-3 w-3" />
+                        <span className="text-sm">—</span>
                       </div>
                     )}
                   </td>
 
-                  {/* ⬅️ ستون ۶: نمودار مقایسه‌ای درآمد/هزینه */}
+                  {/* ستون نمودار */}
                   <td className="px-4 py-3">
-                    <div className="flex flex-col gap-1">
-                      {/* نوار درآمد */}
-                      <div className="flex items-center gap-1">
+                    {data.monthTransactionCount > 0 ? (
+                      <div className="flex flex-col gap-1">
                         <div
-                          className="h-2 rounded-full bg-green-500 transition-all"
+                          className="h-2 rounded-full bg-green-500"
                           style={{
-                            width:
-                              maxIncome > 0
-                                ? `${(month.income / maxIncome) * 80}px`
-                                : "0px",
+                            width: `${Math.min((data.monthIncome / Math.max(data.monthIncome, data.monthExpense)) * 60, 60)}px`,
+                          }}
+                        />
+                        <div
+                          className="h-2 rounded-full bg-red-500"
+                          style={{
+                            width: `${Math.min((data.monthExpense / Math.max(data.monthIncome, data.monthExpense)) * 60, 60)}px`,
                           }}
                         />
                       </div>
-                      {/* نوار هزینه */}
-                      <div className="flex items-center gap-1">
-                        <div
-                          className="h-2 rounded-full bg-red-500 transition-all"
-                          style={{
-                            width:
-                              maxExpense > 0
-                                ? `${(month.expense / maxExpense) * 80}px`
-                                : "0px",
-                          }}
-                        />
-                      </div>
-                    </div>
+                    ) : (
+                      <div className="text-muted-foreground text-xs">—</div>
+                    )}
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
       {/* ========================================
-          📝 بخش راهنما
+          📝 Legend
       ======================================== */}
       <div className="border-border text-muted-foreground flex items-center justify-center gap-6 rounded-lg border border-dashed p-3 text-xs">
         <div className="flex items-center gap-2">
@@ -300,6 +266,33 @@ export default function MonthlyReport() {
         </div>
         <span>• برای مشاهدهٔ جزئیات، روی هر ماه کلیک کنید</span>
       </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* 🧩 UI Helper Components */
+/* ------------------------------------------------------------------ */
+
+function SummaryCard({
+  title,
+  icon,
+  value,
+  colorClass,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  value: number;
+  colorClass: string;
+}) {
+  return (
+    <div className={cn("border-border rounded-xl border p-4", colorClass)}>
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-sm font-medium">{title}</span>
+        {icon}
+      </div>
+      <p className="text-2xl font-bold">{value.toLocaleString("fa-IR")}</p>
+      <p className="mt-1 text-xs">تومان</p>
     </div>
   );
 }

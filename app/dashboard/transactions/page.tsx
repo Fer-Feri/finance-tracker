@@ -37,6 +37,31 @@ const statusItems: { id: TransactionStatus; label: string }[] = [
   { id: "failed", label: "ناموفق" },
 ];
 
+export const TRANSACTION_CATEGORIES: Record<string, string> = {
+  // 💸 EXPENSE
+  food: "خوراک و نوشیدنی",
+  transport: "حمل و نقل",
+  shopping: "خرید و پوشاک",
+  bills: "قبض",
+  health: "بهداشت و درمان",
+  entertainment: "سرگرمی",
+  education: "آموزش",
+  home: "خانه و اجاره",
+  insurance: "بیمه",
+  gifts: "هدیه و کمک",
+  expenseOther: "سایر هزینه‌ها",
+
+  // 💰 INCOME
+  salary: "حقوق و دستمزد",
+  freelance: "پروژه و فریلنس",
+  business: "کسب و کار",
+  investment: "سرمایه‌گذاری",
+  rental: "اجاره و رهن",
+  bonus: "پاداش و عیدی",
+  giftReceived: "هدیه دریافتی",
+  incomeOther: "سایر درآمدها",
+};
+
 // ============================================================
 // COMPONENT
 // ============================================================
@@ -64,7 +89,6 @@ export default function TransactionsPage() {
     openAddModal,
     openEditModal,
     isAddModalOpen,
-    setIsAddModalOpen,
   } = useTransactionStore();
 
   const filteredTransactions = getFilteredTransactions();
@@ -79,24 +103,38 @@ export default function TransactionsPage() {
     setTransactions(transactionsData);
   }, [setTransactions]);
 
-  const renderPageNumbers = () => {
+  // const renderPageNumbers = () => {
+  //   const pages = [];
+  //   for (let i = 1; i <= totalPages; i++) {
+  //     pages.push(
+  //       <button
+  //         key={i}
+  //         onClick={() => setPage(i)}
+  //         className={cn(
+  //           "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+  //           i === currentPage
+  //             ? "bg-primary text-white"
+  //             : "border-border hover:bg-accent border",
+  //         )}
+  //       >
+  //         {i}
+  //       </button>,
+  //     );
+  //   }
+  //   return pages;
+  // };
+
+  const getVisiblePages = () => {
     const pages = [];
-    for (let i = 1; i <= totalPages; i++) {
-      pages.push(
-        <button
-          key={i}
-          onClick={() => setPage(i)}
-          className={cn(
-            "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-            i === currentPage
-              ? "bg-primary text-white"
-              : "border-border hover:bg-accent border",
-          )}
-        >
-          {i}
-        </button>,
-      );
+    const delta = 1; // دو تا قبل و بعد
+
+    const start = Math.max(1, currentPage - delta);
+    const end = Math.min(totalPages, currentPage + delta);
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
     }
+
     return pages;
   };
 
@@ -327,7 +365,7 @@ export default function TransactionsPage() {
                     {/* category */}
                     <td className="p-4 text-center">
                       <span className="bg-secondary/80 text-secondary-foreground inline-block rounded-lg px-3 py-1 text-xs font-medium">
-                        {transaction.category}
+                        {TRANSACTION_CATEGORIES[transaction.category]}
                       </span>
                     </td>
                     {/* date */}
@@ -416,32 +454,51 @@ export default function TransactionsPage() {
 
       {/* PAGINATION */}
       <div className="flex items-center justify-between opacity-70">
-        <p className="text-sm">
+        <p className="text-xs md:text-sm">
           نمایش {startItem}–{endItem} از {totalItems} تراکنش
         </p>
         <div className="flex gap-2">
           <button
+            className="border-primary/60 rounded-md border px-2.5 py-1 text-sm"
             onClick={prevPage}
             disabled={currentPage === 1}
-            className={cn(
-              "rounded-lg border px-4 py-2 text-sm font-medium transition-all duration-200",
-              currentPage === 1
-                ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
-                : "border-primary text-muted-foreground hover:bg-primary bg-muted hover:text-white",
-            )}
           >
             قبلی
           </button>
-          {renderPageNumbers()}
+
+          {currentPage > 3 && (
+            <>
+              <button onClick={() => setPage(1)}>1</button>
+              <span className="px-2">…</span>
+            </>
+          )}
+
+          {getVisiblePages().map((page) => (
+            <button
+              key={page}
+              onClick={() => setPage(page)}
+              className={cn(
+                "rounded-lg px-3 py-2 text-sm",
+                page === currentPage
+                  ? "bg-primary text-white"
+                  : "hover:bg-accent border",
+              )}
+            >
+              {page}
+            </button>
+          ))}
+
+          {currentPage < totalPages - 2 && (
+            <>
+              <span className="px-2">…</span>
+              <button onClick={() => setPage(totalPages)}>{totalPages}</button>
+            </>
+          )}
+
           <button
+            className="border-primary/60 rounded-md border px-2.5 py-1 text-sm"
             onClick={nextPage}
             disabled={currentPage === totalPages}
-            className={cn(
-              "rounded-lg border px-4 py-2 text-sm font-medium transition-all duration-200",
-              currentPage === totalPages
-                ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
-                : "border-primary text-muted-foreground hover:bg-primary bg-muted hover:text-white",
-            )}
           >
             بعدی
           </button>

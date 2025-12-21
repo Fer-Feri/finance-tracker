@@ -3,18 +3,14 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import CurrencyInput from "../ui/currency-input/CurrencyInput";
 import { PersianDatePicker } from "../ui/PersianDatePicker";
 import { useTransactionStore } from "@/store/transactionStore";
-import {
-  Transaction,
-  TransactionType,
-  TransactionStatus,
-} from "@/types/transaction";
+import { TransactionType, TransactionStatus } from "@/types/transaction";
 
 // ========== Types ==========
 interface TransactionFormData {
@@ -53,7 +49,7 @@ export const TRANSACTION_CATEGORIES: Category[] = [
   { value: "insurance", label: "بیمه", type: "expense", icon: "🛡️" },
   { value: "gifts", label: "هدیه و کمک", type: "expense", icon: "🎁" },
   {
-    value: "expense-other",
+    value: "expenseOther",
     label: "سایر هزینه‌ها",
     type: "expense",
     icon: "📦",
@@ -66,8 +62,8 @@ export const TRANSACTION_CATEGORIES: Category[] = [
   { value: "investment", label: "سرمایه‌گذاری", type: "income", icon: "📈" },
   { value: "rental", label: "اجاره و رهن", type: "income", icon: "🔑" },
   { value: "bonus", label: "پاداش و عیدی", type: "income", icon: "🎉" },
-  { value: "gift-received", label: "هدیه دریافتی", type: "income", icon: "🎁" },
-  { value: "income-other", label: "سایر درآمدها", type: "income", icon: "💵" },
+  { value: "giftReceived", label: "هدیه دریافتی", type: "income", icon: "🎁" },
+  { value: "incomeOther", label: "سایر درآمدها", type: "income", icon: "💵" },
 ];
 
 export const TRANSACTION_PAYMENTS: Payment[] = [
@@ -96,26 +92,25 @@ export default function AddTransactionModal() {
   const refElem = useRef(null);
 
   // ✅ react-hook-form
-  const { control, handleSubmit, reset, watch, setValue } =
-    useForm<TransactionFormData>({
-      defaultValues: {
-        type: "income",
-        amount: 0,
-        description: "",
-        category: "",
-        paymentMethod: "card",
-        status: "completed",
-        date: new Date()
-          .toLocaleDateString("fa-IR", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          })
-          .replace(/\//g, "/"),
-      },
-    });
+  const { control, handleSubmit, reset } = useForm<TransactionFormData>({
+    defaultValues: {
+      type: "income",
+      amount: 0,
+      description: "",
+      category: "",
+      paymentMethod: "card",
+      status: "completed",
+      date: new Date()
+        .toLocaleDateString("fa-IR", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        })
+        .replace(/\//g, "/"),
+    },
+  });
 
-  const selectedType = watch("type");
+  const selectedType = useWatch({ control, name: "type" });
 
   // ✅ پر کردن فرم در Edit Mode
   useEffect(() => {
