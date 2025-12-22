@@ -11,6 +11,7 @@ import CurrencyInput from "../ui/currency-input/CurrencyInput";
 import { PersianDatePicker } from "../ui/PersianDatePicker";
 import { useTransactionStore } from "@/store/transactionStore";
 import { TransactionType, TransactionStatus } from "@/types/transaction";
+import moment from "jalali-moment";
 
 // ========== Types ==========
 interface TransactionFormData {
@@ -91,6 +92,10 @@ export default function AddTransactionModal() {
 
   const refElem = useRef(null);
 
+  const getTodayPersianDate = () => {
+    return moment().locale("fa").format("jYYYY/jMM/jDD");
+  };
+
   // ✅ react-hook-form
   const { control, handleSubmit, reset } = useForm<TransactionFormData>({
     defaultValues: {
@@ -100,13 +105,7 @@ export default function AddTransactionModal() {
       category: "",
       paymentMethod: "card",
       status: "completed",
-      date: new Date()
-        .toLocaleDateString("fa-IR", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        })
-        .replace(/\//g, "/"),
+      date: getTodayPersianDate(),
     },
   });
 

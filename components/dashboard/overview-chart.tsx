@@ -53,7 +53,9 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
 export default function OverviewChart() {
   const { transactions, currentMonth, currentYear } = useDashboardStore();
 
-  // ===============اطلاعات چارت 6 ماه گذشته=💹===================
+  // =========================================================
+  // ==========>>>>>>>>>=====💹اطلاعات چارت 6 ماه گذشته=💹=======<<<<<<<<<============
+  // =========================================================
   const dataSixMonth = useMemo(() => {
     const monthData = [];
 

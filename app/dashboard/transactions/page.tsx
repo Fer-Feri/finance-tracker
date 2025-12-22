@@ -131,12 +131,6 @@ export default function TransactionsPage() {
     setTransactions(transactionsData);
   }, [setTransactions]);
 
-  // ✅ هنگام باز شدن بخش سفارشی، مقادیر فعلی فیلتر رو توی state موقت بریز
-  useEffect(() => {
-    if (filters.customYear) setTempYear(filters.customYear);
-    if (filters.customMonth) setTempMonth(filters.customMonth);
-  }, [filters.customYear, filters.customMonth]);
-
   // ============================================================
   // HANDLERS
   // ============================================================
@@ -195,6 +189,16 @@ export default function TransactionsPage() {
   const handleDelete = (id: string) => {
     if (confirm("آیا مطمئن هستید؟")) {
       deleteTransaction(id);
+    }
+  };
+
+  const handleCustomFilterToggle = () => {
+    const newState = !isCustomFilterOpen;
+    setIsCustomFilterOpen(newState);
+
+    if (newState) {
+      setTempYear(filters.customYear || getCurrentJalaliYearMonth().year);
+      setTempMonth(filters.customMonth || getCurrentJalaliYearMonth().month);
     }
   };
 
@@ -347,7 +351,7 @@ export default function TransactionsPage() {
                 {/* ============================================================ */}
                 <div className="bg-muted/40 mt-6 space-y-3 rounded-lg p-3 shadow-sm">
                   <button
-                    onClick={() => setIsCustomFilterOpen(!isCustomFilterOpen)}
+                    onClick={handleCustomFilterToggle}
                     className="text-muted-foreground hover:text-foreground flex w-full items-center justify-between text-xs font-semibold transition-colors"
                   >
                     <span>📅 انتخاب تاریخ دقیق (سفارشی)</span>
