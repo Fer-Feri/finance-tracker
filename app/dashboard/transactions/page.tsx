@@ -45,7 +45,6 @@ const dateRangeItems: {
 }[] = [
   { id: "all", label: "همه" },
   { id: "today", label: "امروز" },
-  { id: "week", label: "این هفته" },
   { id: "month", label: "این ماه" },
 ];
 

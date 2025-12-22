@@ -4,6 +4,10 @@ import { CardDashboardItems } from "@/config/card-dashboard";
 import { cn } from "@/lib/utils";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { motion } from "framer-motion";
+import { useDashboardStore } from "@/store/dashbiardStore";
+import { transactionsData } from "@/config/tranaction-data";
+import { useEffect } from "react";
+import { formatLargeNumber } from "@/utils/formatNumber";
 
 // ✅ Variant mapping: Clean & DRY
 const variantStyles = {
@@ -42,10 +46,49 @@ const variantStyles = {
 } as const;
 
 export default function StatsGrid() {
+  const {
+    setTransactions,
+    getThisMonthIncome,
+    getThisMonthExpense,
+    getThisMonthSavings,
+    getSavingsPercentage,
+    getThisYearTotalBalance,
+    getChangePercentage,
+  } = useDashboardStore();
+
+  useEffect(() => {
+    setTransactions(transactionsData);
+  }, [setTransactions]);
+
+  const income = getThisMonthIncome();
+  const expense = getThisMonthExpense();
+  const savings = getThisMonthSavings();
+  const savingsPercentage = getSavingsPercentage();
+  const totalBalance = getThisYearTotalBalance();
+
+  const getCardValue = (id: string) => {
+    switch (id) {
+      case "total-balance":
+        return totalBalance;
+      case "monthly-income":
+        return income;
+      case "monthly-expense":
+        return expense;
+      case "savings":
+        return savings;
+      default:
+        return 0;
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {CardDashboardItems.map((item, index) => {
         const styles = variantStyles[item.variant];
+        const value = getCardValue(item.id);
+
+        const changePercentage = getChangePercentage(item.id);
+        const isPositive = changePercentage !== null && changePercentage >= 0;
 
         return (
           <motion.div
@@ -89,30 +132,40 @@ export default function StatsGrid() {
               {/* Value */}
               <div className="mb-4 space-y-2">
                 <h3 className="text-foreground text-3xl font-bold tracking-tight">
-                  {item.value.toLocaleString("fa-IR")} ت
+                  {formatLargeNumber(value)} ت
                 </h3>
+
+                {/* نمایش درصد پس‌انداز -  */}
+                {item.id === "savings" && (
+                  <div className="border-secondary/30 bg-secondary/10 text-secondary inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold">
+                    <span className="text-secondary/70">از درآمد ماه:</span>
+                    <span>{savingsPercentage}٪</span>
+                  </div>
+                )}
               </div>
 
               {/* Change Badge */}
-              {item.change && (
+              {changePercentage !== null && (
                 <div className="flex items-center gap-2">
                   <div
                     className={cn(
                       "flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-all",
-                      item.isPositive
+                      isPositive
                         ? "bg-emerald-500/10 text-emerald-500"
                         : "bg-red-500/10 text-red-500",
                     )}
                   >
-                    {item.isPositive ? (
+                    {isPositive ? (
                       <TrendingUp className="h-3 w-3" />
                     ) : (
                       <TrendingDown className="h-3 w-3" />
                     )}
-                    <span>{item.change}</span>
+                    <span>{changePercentage}%</span>
                   </div>
                   <span className="text-muted-foreground text-xs">
-                    نسبت به ماه قبل
+                    {item.id === "total-balance"
+                      ? " نسبت به سال قبل"
+                      : " نسبت به ماه قبل"}
                   </span>
                 </div>
               )}

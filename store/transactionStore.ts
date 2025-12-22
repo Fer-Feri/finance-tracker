@@ -174,9 +174,6 @@ export const useTransactionStore = create<TransactionStoreType>()((
             case "today":
               startDate = now.clone().startOf("day");
               break;
-            case "week":
-              startDate = now.clone().startOf("week");
-              break;
             case "month":
               startDate = now.clone().startOf("jMonth");
               break;

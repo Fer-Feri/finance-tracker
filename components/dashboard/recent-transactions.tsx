@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 import { TransactionStatus, TransactionType } from "@/types/transaction";
 import { ArrowDownRight, ArrowUpLeft } from "lucide-react";
 import moment from "jalali-moment";
-import { useState } from "react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { useDashboardStore } from "@/store/dashbiardStore";
 
 // -------------------- Component --------------------
 
@@ -15,16 +15,12 @@ export default function RecentTransactions() {
   // -------------------- State --------------------
 
   // Toggle between showing only recent (5) or all monthly transactions
-  const [showAllTransactions, setShowAllTransactions] = useState(false);
-
-  // -------------------- Date Helpers --------------------
-
-  // Current Jalali date (Persian locale)
-  const now = moment().locale("fa");
-
-  // Extract current Jalali year & month
-  const currentYear = now.jYear();
-  const currentMonth = now.jMonth() + 1; // jMonth is 0-based
+  const {
+    showAllTransactions,
+    setShowAllTransactions,
+    currentYear,
+    currentMonth,
+  } = useDashboardStore();
 
   // -------------------- Data Filtering --------------------
 
@@ -187,7 +183,7 @@ export default function RecentTransactions() {
 
       {/* ---------- Show More / Less Button ---------- */}
       <motion.button
-        onClick={() => setShowAllTransactions((prev) => !prev)}
+        onClick={() => setShowAllTransactions()}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         className="border-border hover:bg-accent mt-4 w-full rounded-lg border py-2 text-xs font-medium transition-all duration-300 sm:mt-6 sm:py-2.5 sm:text-sm"
