@@ -10,16 +10,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import { overviewChartProps } from "@/types/overview-chart";
-
-const data: overviewChartProps[] = [
-  { name: "فروردین", income: 3200000, expense: 1800000 },
-  { name: "اردیبهشت", income: 4100000, expense: 2300000 },
-  { name: "خرداد", income: 3800000, expense: 2600000 },
-  { name: "تیر", income: 4500000, expense: 2900000 },
-  { name: "مرداد", income: 5200000, expense: 3100000 },
-  { name: "شهریور", income: 4800000, expense: 3400000 },
-];
+import { useMemo } from "react";
+import { useDashboardStore } from "@/store/dashbiardStore";
+import moment from "jalali-moment";
 
 // ✅ Custom Tooltip (اختیاری - برای نمایش بهتر)
 interface CustomTooltipProps {
@@ -58,6 +51,50 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
 };
 
 export default function OverviewChart() {
+  const { transactions, currentMonth, currentYear } = useDashboardStore();
+
+  // ===============اطلاعات چارت 6 ماه گذشته=💹===================
+  const dataSixMonth = useMemo(() => {
+    const monthData = [];
+
+    for (let i = 5; i >= 0; i--) {
+      let targetMonth = currentMonth - i;
+      let targetYear = currentYear;
+
+      while (targetMonth <= 0) {
+        targetMonth += 12;
+        targetYear -= 1;
+      }
+
+      const monthTransactions = transactions.filter((transaction) => {
+        if (transaction.status !== "completed") return false;
+        const date = moment(transaction.date, "jYYYY-jMM-jDD");
+        return date.jYear() === targetYear && date.jMonth() + 1 === targetMonth;
+      });
+
+      const income = monthTransactions
+        .filter((t) => t.type === "income")
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const expense = monthTransactions
+        .filter((t) => t.type === "expense")
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      monthData.push({
+        name: moment()
+          .jYear(targetYear)
+          .jMonth(targetMonth - 1)
+          .locale("fa")
+          .format("jMMMM"),
+        income,
+        expense,
+        year: targetYear,
+        month: targetMonth,
+      });
+    }
+    return monthData;
+  }, [transactions, currentMonth, currentYear]);
+
   return (
     <div className="border-border bg-card hover:border-primary/40 mt-6 rounded-xl border p-5 shadow-sm transition-all duration-300">
       {/* Header */}
@@ -89,7 +126,7 @@ export default function OverviewChart() {
       <div className="h-80 w-full" dir="ltr">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
-            data={data}
+            data={dataSixMonth}
             margin={{
               top: 10,
               right: 10,

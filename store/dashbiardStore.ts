@@ -3,10 +3,18 @@ import { Transaction } from "@/types/transaction";
 import { getCurrentJalaliYearMonth } from "@/utils/date/dateHelpers";
 import moment from "jalali-moment";
 
+interface LastSixMonthItem {
+  name: string;
+  income: number;
+  expense: number;
+  year: number;
+  month: number;
+}
+
 interface DashboardStoreType {
   transactions: Transaction[];
-  currentYear?: number;
-  currentMonth?: number;
+  currentYear: number;
+  currentMonth: number;
   showAllTransactions: boolean;
 
   setTransactions: (data: Transaction[]) => void;
