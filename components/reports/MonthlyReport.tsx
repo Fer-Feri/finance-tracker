@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import moment from "jalali-moment";
 import {
   TrendingUp,
   TrendingDown,
@@ -11,55 +12,97 @@ import {
   FileText,
   Minus,
 } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { useMonthlyReportData } from "@/hooks/useMonthlyReportData";
 import { useMonthlyBreakdown } from "@/hooks/useMonthlyBreakdown";
-import moment from "jalali-moment";
 import MonthDetailModal from "./MonthDetailModal";
 
-// ====================================================================
-// 📊 MonthlyReport – UI ONLY
-// ====================================================================
+// ============================================================
+// CONSTANTS
+// ============================================================
+const JALALI_MONTHS = [
+  { id: 1, name: "فروردین" },
+  { id: 2, name: "اردیبهشت" },
+  { id: 3, name: "خرداد" },
+  { id: 4, name: "تیر" },
+  { id: 5, name: "مرداد" },
+  { id: 6, name: "شهریور" },
+  { id: 7, name: "مهر" },
+  { id: 8, name: "آبان" },
+  { id: 9, name: "آذر" },
+  { id: 10, name: "دی" },
+  { id: 11, name: "بهمن" },
+  { id: 12, name: "اسفند" },
+];
 
+// ============================================================
+// TYPES
+// ============================================================
+interface SummaryCardProps {
+  title: string;
+  icon: React.ReactNode;
+  value: number;
+  colorClass: string;
+}
+
+interface MonthDetails {
+  year: number;
+  month: number;
+  monthName: string;
+}
+
+// ============================================================
+// MAIN COMPONENT
+// ============================================================
 export default function MonthlyReport() {
-  const [selectedMonthDetails, setSelectedMonthDetails] = useState<{
-    year: number;
-    month: number;
-    monthName: string;
-  } | null>(null);
-
+  // ============================================================
+  // STATE
+  // ============================================================
   const thisYear = moment().locale("fa").jYear();
-  // ✅ فقط state مربوط به دکمه‌های سال
   const [selectedYear, setSelectedYear] = useState<number>(thisYear);
+  const [selectedMonthDetails, setSelectedMonthDetails] =
+    useState<MonthDetails | null>(null);
 
+  // Year navigation bounds
   const CURRENT_YEAR = thisYear;
   const MIN_YEAR = CURRENT_YEAR - 1;
 
-  // 🧪 داده‌ی نمایشی (Mock)
-  const months = [
-    { id: 1, name: "فروردین" },
-    { id: 2, name: "اردیبهشت" },
-    { id: 3, name: "خرداد" },
-    { id: 4, name: "تیر" },
-    { id: 5, name: "مرداد" },
-    { id: 6, name: "شهریور" },
-    { id: 7, name: "مهر" },
-    { id: 8, name: "آبان" },
-    { id: 9, name: "آذر" },
-    { id: 10, name: "دی" },
-    { id: 11, name: "بهمن" },
-    { id: 12, name: "اسفند" },
-  ];
-
+  // ============================================================
+  // HOOKS: Fetch report data
+  // ============================================================
   const yearData = useMonthlyReportData(selectedYear);
   const monthData = useMonthlyBreakdown(selectedYear);
 
+  // ============================================================
+  // HANDLERS
+  // ============================================================
+  const handleYearPrev = () => setSelectedYear((y) => y - 1);
+  const handleYearNext = () => setSelectedYear((y) => y + 1);
+
+  const handleMonthClick = (month: { id: number; name: string }) => {
+    const data = monthData[month.id - 1];
+    if (data.monthTransactionCount > 0) {
+      setSelectedMonthDetails({
+        year: selectedYear,
+        month: month.id,
+        monthName: month.name,
+      });
+    }
+  };
+
+  const handleCloseModal = () => setSelectedMonthDetails(null);
+
+  // ============================================================
+  // RENDER
+  // ============================================================
   return (
     <div className="space-y-6">
       {/* ========================================
-          🎯 Header – Year Selector
+          Header: Year Selector
       ======================================== */}
       <div className="flex items-center justify-between">
+        {/* Title & Transaction Count */}
         <div className="flex-col items-center space-y-1">
           <Calendar className="text-primary h-5 w-5" />
           <h2 className="text-xs font-bold md:text-xl">
@@ -70,21 +113,24 @@ export default function MonthlyReport() {
           </span>
         </div>
 
+        {/* Year Navigation Controls */}
         <div className="flex items-center gap-2 md:gap-6">
           <button
-            onClick={() => setSelectedYear((y) => y - 1)}
+            onClick={handleYearPrev}
             disabled={selectedYear <= MIN_YEAR}
-            className="border-border bg-background hover:bg-muted rounded-lg border p-2"
+            className="border-border bg-background hover:bg-muted rounded-lg border p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
 
-          <span className="text-sm font-medium">{selectedYear}</span>
+          <span className="text-sm font-medium tabular-nums">
+            {selectedYear}
+          </span>
 
           <button
-            onClick={() => setSelectedYear((y) => y + 1)}
+            onClick={handleYearNext}
             disabled={selectedYear === CURRENT_YEAR}
-            className="border-border bg-background hover:bg-muted rounded-lg border p-2"
+            className="border-border bg-background hover:bg-muted rounded-lg border p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -92,7 +138,7 @@ export default function MonthlyReport() {
       </div>
 
       {/* ========================================
-          💳 Summary Cards (UI)
+          Summary Cards: Year Statistics
       ======================================== */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
@@ -122,10 +168,11 @@ export default function MonthlyReport() {
       </div>
 
       {/* ========================================
-          📊 Table (UI)
+          Table: Monthly Breakdown
       ======================================== */}
       <div className="border-border no-scrollbar overflow-auto rounded-xl border">
         <table className="w-full">
+          {/* Table Header */}
           <thead className="bg-muted/50">
             <tr>
               <th className="px-4 py-3 text-right text-sm font-semibold">
@@ -149,32 +196,28 @@ export default function MonthlyReport() {
             </tr>
           </thead>
 
+          {/* Table Body */}
           <tbody className="divide-border divide-y">
-            {months.map((month) => {
+            {JALALI_MONTHS.map((month) => {
               const data = monthData[month.id - 1];
+              const hasTransactions = data.monthTransactionCount > 0;
+              const maxAmount = Math.max(data.monthIncome, data.monthExpense);
+
               return (
                 <tr
                   key={month.id}
-                  onClick={() => {
-                    if (data.monthTransactionCount > 0) {
-                      setSelectedMonthDetails({
-                        year: selectedYear,
-                        month: month.id,
-                        monthName: month.name,
-                      });
-                    }
-                  }}
+                  onClick={() => handleMonthClick(month)}
                   className={cn(
                     "transition-colors",
-                    data.monthTransactionCount > 0
+                    hasTransactions
                       ? "hover:bg-muted/30 cursor-pointer"
                       : "cursor-not-allowed opacity-50",
                   )}
                 >
-                  {/* ستون ماه */}
+                  {/* Column: Month Name & Transaction Count */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="bg-primary/10 text-primary flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold">
+                      <div className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold">
                         {month.id}
                       </div>
                       <div>
@@ -187,36 +230,35 @@ export default function MonthlyReport() {
                     </div>
                   </td>
 
-                  {/* ستون درآمد */}
+                  {/* Column: Income */}
                   <td className="px-4 py-3 text-green-600 tabular-nums">
                     {data.monthIncome > 0
                       ? data.monthIncome.toLocaleString("fa-IR")
                       : "—"}
                   </td>
 
-                  {/* ستون هزینه */}
+                  {/* Column: Expense */}
                   <td className="px-4 py-3 text-red-400 tabular-nums">
                     {data.monthExpense > 0
                       ? data.monthExpense.toLocaleString("fa-IR")
                       : "—"}
                   </td>
 
-                  {/* ستون سود/زیان */}
+                  {/* Column: Profit/Loss */}
                   <td
-                    className={`px-4 py-3 font-semibold tabular-nums ${
-                      data.monthProfit > 0
-                        ? "text-green-600"
-                        : data.monthProfit < 0
-                          ? "text-red-600"
-                          : "text-muted-foreground"
-                    }`}
+                    className={cn(
+                      "px-4 py-3 font-semibold tabular-nums",
+                      data.monthProfit > 0 && "text-green-600",
+                      data.monthProfit < 0 && "text-red-600",
+                      data.monthProfit === 0 && "text-muted-foreground",
+                    )}
                   >
-                    {data.monthTransactionCount > 0
+                    {hasTransactions
                       ? data.monthProfit.toLocaleString("fa-IR")
                       : "—"}
                   </td>
 
-                  {/* ستون نرخ سود */}
+                  {/* Column: Change Percentage */}
                   <td className="px-4 py-3">
                     {data.monthIncome > 0 ? (
                       <div className="flex items-center gap-1">
@@ -228,13 +270,12 @@ export default function MonthlyReport() {
                           <Minus className="text-muted-foreground h-3 w-3" />
                         )}
                         <span
-                          className={`text-sm tabular-nums ${
-                            data.monthProfit > 0
-                              ? "text-green-600"
-                              : data.monthProfit < 0
-                                ? "text-red-600"
-                                : "text-muted-foreground"
-                          }`}
+                          className={cn(
+                            "text-sm tabular-nums",
+                            data.monthProfit > 0 && "text-green-600",
+                            data.monthProfit < 0 && "text-red-600",
+                            data.monthProfit === 0 && "text-muted-foreground",
+                          )}
                         >
                           {data.monthProfitPercent}%
                         </span>
@@ -247,20 +288,22 @@ export default function MonthlyReport() {
                     )}
                   </td>
 
-                  {/* ستون نمودار */}
+                  {/* Column: Mini Chart */}
                   <td className="px-4 py-3">
-                    {data.monthTransactionCount > 0 ? (
+                    {hasTransactions ? (
                       <div className="flex flex-col gap-1">
+                        {/* Income Bar */}
                         <div
                           className="h-2 rounded-full bg-green-500"
                           style={{
-                            width: `${Math.min((data.monthIncome / Math.max(data.monthIncome, data.monthExpense)) * 60, 60)}px`,
+                            width: `${Math.min((data.monthIncome / maxAmount) * 60, 60)}px`,
                           }}
                         />
+                        {/* Expense Bar */}
                         <div
                           className="h-2 rounded-full bg-red-500"
                           style={{
-                            width: `${Math.min((data.monthExpense / Math.max(data.monthIncome, data.monthExpense)) * 60, 60)}px`,
+                            width: `${Math.min((data.monthExpense / maxAmount) * 60, 60)}px`,
                           }}
                         />
                       </div>
@@ -276,7 +319,7 @@ export default function MonthlyReport() {
       </div>
 
       {/* ========================================
-          📝 Legend
+          Legend: Chart Explanation
       ======================================== */}
       <div className="border-border text-muted-foreground flex items-center justify-center gap-6 rounded-lg border border-dashed p-3 text-xs">
         <div className="flex items-center gap-2">
@@ -290,42 +333,37 @@ export default function MonthlyReport() {
         <span>• برای مشاهدهٔ جزئیات، روی هر ماه کلیک کنید</span>
       </div>
 
-      {/* MODAL DETAILS MONTH */}
+      {/* ========================================
+          Modal: Month Details
+      ======================================== */}
       {selectedMonthDetails && (
         <MonthDetailModal
           year={selectedMonthDetails.year}
           month={selectedMonthDetails.month}
           monthName={selectedMonthDetails.monthName}
           isOpen={!!selectedMonthDetails}
-          onClose={() => setSelectedMonthDetails(null)}
+          onClose={handleCloseModal}
         />
       )}
     </div>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* 🧩 UI Helper Components */
-/* ------------------------------------------------------------------ */
-
-function SummaryCard({
-  title,
-  icon,
-  value,
-  colorClass,
-}: {
-  title: string;
-  icon: React.ReactNode;
-  value: number;
-  colorClass: string;
-}) {
+// ============================================================
+// SUB COMPONENT: Summary Card
+// ============================================================
+function SummaryCard({ title, icon, value, colorClass }: SummaryCardProps) {
   return (
     <div className={cn("border-border rounded-xl border p-4", colorClass)}>
+      {/* Header */}
       <div className="mb-2 flex items-center justify-between">
         <span className="text-sm font-medium">{title}</span>
         {icon}
       </div>
-      <p className="text-2xl font-bold">{value.toLocaleString("fa-IR")}</p>
+      {/* Value */}
+      <p className="text-2xl font-bold tabular-nums">
+        {value.toLocaleString("fa-IR")}
+      </p>
       <p className="mt-1 text-xs">تومان</p>
     </div>
   );
