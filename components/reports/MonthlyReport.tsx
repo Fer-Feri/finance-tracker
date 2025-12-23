@@ -14,16 +14,25 @@ import {
 import { cn } from "@/lib/utils";
 import { useMonthlyReportData } from "@/hooks/useMonthlyReportData";
 import { useMonthlyBreakdown } from "@/hooks/useMonthlyBreakdown";
+import moment from "jalali-moment";
+import MonthDetailModal from "./MonthDetailModal";
 
 // ====================================================================
 // 📊 MonthlyReport – UI ONLY
 // ====================================================================
 
 export default function MonthlyReport() {
-  // ✅ فقط state مربوط به دکمه‌های سال
-  const [selectedYear, setSelectedYear] = useState<number>(1404);
+  const [selectedMonthDetails, setSelectedMonthDetails] = useState<{
+    year: number;
+    month: number;
+    monthName: string;
+  } | null>(null);
 
-  const CURRENT_YEAR = 1404;
+  const thisYear = moment().locale("fa").jYear();
+  // ✅ فقط state مربوط به دکمه‌های سال
+  const [selectedYear, setSelectedYear] = useState<number>(thisYear);
+
+  const CURRENT_YEAR = thisYear;
   const MIN_YEAR = CURRENT_YEAR - 1;
 
   // 🧪 داده‌ی نمایشی (Mock)
@@ -146,7 +155,21 @@ export default function MonthlyReport() {
               return (
                 <tr
                   key={month.id}
-                  className="hover:bg-muted/10 transition-colors"
+                  onClick={() => {
+                    if (data.monthTransactionCount > 0) {
+                      setSelectedMonthDetails({
+                        year: selectedYear,
+                        month: month.id,
+                        monthName: month.name,
+                      });
+                    }
+                  }}
+                  className={cn(
+                    "transition-colors",
+                    data.monthTransactionCount > 0
+                      ? "hover:bg-muted/30 cursor-pointer"
+                      : "cursor-not-allowed opacity-50",
+                  )}
                 >
                   {/* ستون ماه */}
                   <td className="px-4 py-3">
@@ -266,6 +289,17 @@ export default function MonthlyReport() {
         </div>
         <span>• برای مشاهدهٔ جزئیات، روی هر ماه کلیک کنید</span>
       </div>
+
+      {/* MODAL DETAILS MONTH */}
+      {selectedMonthDetails && (
+        <MonthDetailModal
+          year={selectedMonthDetails.year}
+          month={selectedMonthDetails.month}
+          monthName={selectedMonthDetails.monthName}
+          isOpen={!!selectedMonthDetails}
+          onClose={() => setSelectedMonthDetails(null)}
+        />
+      )}
     </div>
   );
 }
