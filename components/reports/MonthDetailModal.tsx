@@ -20,6 +20,7 @@ import { useTransactionStore } from "@/store/transactionStore";
 import { useMemo } from "react";
 import moment from "jalali-moment";
 import { cn } from "@/lib/utils";
+import { formatLargeNumber } from "@/utils/formatNumber";
 
 export default function MonthDetailModal({
   year,
@@ -49,8 +50,12 @@ export default function MonthDetailModal({
 
   // 📊 محاسبه آمار
   const stats = useMemo(() => {
-    const income = monthTransactions.filter((t) => t.type === "income");
-    const expense = monthTransactions.filter((t) => t.type === "expense");
+    const income = monthTransactions.filter(
+      (t) => t.type === "income" && t.status === "completed",
+    );
+    const expense = monthTransactions.filter(
+      (t) => t.type === "expense" && t.status === "completed",
+    );
 
     return {
       total: monthTransactions.length,
@@ -70,7 +75,7 @@ export default function MonthDetailModal({
 
   const handleViewAll = () => {
     onClose();
-    router.push(`/transactions?year=${year}&month=${month}`);
+    router.push(`/dashboard/transactions?year=${year}&month=${month}`);
   };
 
   return (
@@ -103,9 +108,7 @@ export default function MonthDetailModal({
           <StatCard
             icon={<DollarSign className="h-4 w-4 text-orange-400" />}
             label="سود/زیان"
-            value={(stats.totalIncome - stats.totalExpense).toLocaleString(
-              "fa-IR",
-            )}
+            value={formatLargeNumber(stats.totalIncome - stats.totalExpense)}
           />
         </div>
 

@@ -20,6 +20,7 @@ import { useEffect, useRef, useState } from "react";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import AddTransactionModal from "@/components/transaction/AddTransactionModal";
 import { getCurrentJalaliYearMonth } from "@/utils/date/dateHelpers";
+import { useRouter, useSearchParams } from "next/navigation";
 
 // ============================================================
 // CONSTANTS
@@ -88,6 +89,9 @@ export default function TransactionsPage() {
   const [isMenuFilterOpen, setIsMenuFilterOpen] = useState<boolean>(false);
   const [isCustomFilterOpen, setIsCustomFilterOpen] = useState<boolean>(false);
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const menuFilterRef = useRef<HTMLDivElement>(null);
   useClickOutside(menuFilterRef, () => setIsMenuFilterOpen(false));
 
@@ -131,6 +135,42 @@ export default function TransactionsPage() {
     setTransactions(transactionsData);
   }, [setTransactions]);
 
+  const updateURLParams = (yaer: number, month: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("year", yaer.toString());
+    params.set("month", month.toString());
+    router.push(`/dashboard/transactions?${params.toString()}`, {
+      scroll: false,
+    });
+  };
+
+  useEffect(() => {
+    const yearParam = searchParams.get("year");
+    const monthParam = searchParams.get("month");
+
+    if (yearParam && monthParam) {
+      const year = Number(yearParam);
+      const month = Number(monthParam);
+
+      setFilters((prev) => {
+        if (
+          prev.customYear === year &&
+          prev.customMonth === month &&
+          prev.dateRange === "custom"
+        ) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          dateRange: "custom",
+          customYear: year,
+          customMonth: month,
+        };
+      });
+    }
+  }, [searchParams, setFilters]);
+
   // ============================================================
   // HANDLERS
   // ============================================================
@@ -145,6 +185,7 @@ export default function TransactionsPage() {
         customYear: tempYear,
         customMonth: tempMonth,
       });
+      updateURLParams(tempYear, tempMonth);
       setIsCustomFilterOpen(false);
     }
   };

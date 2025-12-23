@@ -7,6 +7,14 @@ import { create } from "zustand";
 import moment from "jalali-moment";
 import { getCurrentJalaliYearMonth } from "@/utils/date/dateHelpers";
 
+type Filters = {
+  type: "all" | TransactionType;
+  statuses: TransactionStatus[];
+  dateRange: "all" | "today" | "week" | "month" | "custom";
+  customYear?: number;
+  customMonth?: number;
+};
+
 interface TransactionStoreType {
   transactions: Transaction[];
   currentPage: number;
@@ -29,7 +37,7 @@ interface TransactionStoreType {
   setItemsPerPage: (items: number) => void;
   setTransactions: (data: Transaction[]) => void;
   setSearchValue: (value: string) => void;
-  setFilters: (filters: TransactionStoreType["filters"]) => void;
+  setFilters: (updater: Filters | ((prev: Filters) => Filters)) => void;
   setFilterType: (type: TransactionStoreType["filters"]["type"]) => void;
   setFilterStatuses: (statuses: TransactionStatus[]) => void;
   setFilterDateRange: (
@@ -96,7 +104,13 @@ export const useTransactionStore = create<TransactionStoreType>()((
     setItemsPerPage: (items) => set({ itemPerPage: items, currentPage: 1 }),
     setTransactions: (data) => set({ transactions: data, currentPage: 1 }),
     setSearchValue: (value) => set({ searchValue: value, currentPage: 1 }),
-    setFilters: (filters) => set({ filters, currentPage: 1 }),
+    setFilters: (updater) =>
+      set((state) => ({
+        filters:
+          typeof updater === "function" ? updater(state.filters) : updater,
+        currentPage: 1,
+      })),
+
     setFilterType: (type) =>
       set((state) => ({
         filters: { ...state.filters, type },

@@ -18,7 +18,7 @@ export const transactionsData: Transaction[] = [
     id: "TRX002",
     description: "خرید مواد غذایی",
     category: "food",
-    date: "1404/09/17",
+    date: "1404/08/17",
     amount: 2500000,
     type: "expense",
     status: "completed",
@@ -401,7 +401,7 @@ export const transactionsData: Transaction[] = [
     paymentMethod: "online",
   },
   {
-    id: "TRX038",
+    id: "TRX043",
     description: "پروژه فریلنس",
     category: "freelance",
     date: "1404/01/25",
