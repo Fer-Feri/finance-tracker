@@ -1,6 +1,6 @@
 # 💰 Financer — Personal Finance Management App
 
-A modern, fast and fully localized personal finance manager built with **Next.js 14**, **TypeScript**, and **Tailwind CSS**.
+A modern, fast and fully localized personal finance manager built with **Next.js**, **TypeScript**, and **Tailwind CSS**.
 
 Financer helps you track income & expenses, analyze spending habits, and view beautiful yearly & monthly reports — all with full Persian (RTL) support and Jalali calendar integration.
 
