@@ -1,20 +1,36 @@
-# 💰 Financer - مدیریت مالی شخصی
+# 💰 Financer — Personal Finance Management App
 
-یک اپلیکیشن مدرن برای مدیریت امور مالی شخصی، ساخته شده با Next.js و TypeScript.
+A modern, fast and fully localized personal finance manager built with **Next.js 14**, **TypeScript**, and **Tailwind CSS**.
 
-## ✨ امکانات
+Financer helps you track income & expenses, analyze spending habits, and view beautiful yearly & monthly reports — all with full Persian (RTL) support and Jalali calendar integration.
 
-- ثبت و دسته‌بندی درآمد و هزینه‌ها
-- گزارش‌های سالانه و ماهانه
-- نمودارهای تحلیلی
-- پشتیبانی از تقویم شمسی
-- رابط کاربری فارسی و RTL
-- تم روشن و تاریک
+---
 
-## 🛠️ تکنولوژی‌ها
+## 📸 Screenshot
 
-- **Framework:** Next.js 14
+'./public/screen.PNG'
+
+---
+
+## ✨ Features
+
+- Track and categorize **income** and **expenses**
+- **Monthly & yearly** analytical reports
+- Beautiful and interactive **charts**
+- **Jalali (Persian) calendar** support
+- Fully **RTL-friendly** UI
+- **Dark / Light** theme support
+- Smooth UI transitions powered by **Framer Motion**
+- Local-first user experience
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework:** Next.js 14 (App Router)
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
-- **State:** Zustand
-- **Animation:** Framer Motion
+- **State Management:** Zustand
+- **Animations:** Framer Motion
+- **Icons:** Lucide Icons
+- **Charts:** TBD (Recharts)
