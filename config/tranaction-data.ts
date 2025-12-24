@@ -450,4 +450,14 @@ export const transactionsData: Transaction[] = [
     status: "completed",
     paymentMethod: "cash",
   },
+  {
+    id: "TRX043",
+    description: "مهمانی",
+    category: "food",
+    date: "1403/10/2",
+    amount: 2000000,
+    type: "expense",
+    status: "completed",
+    paymentMethod: "cash",
+  },
 ];

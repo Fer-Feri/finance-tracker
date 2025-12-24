@@ -2,7 +2,7 @@
 
 import ChartsView from "@/components/reports/ChartsView";
 import MonthlyReport from "@/components/reports/MonthlyReport";
-import YearlyReport from "@/components/reports/YearlyReport";
+import YearlyReport from "@/components/reports/yearly-report/YearlyReport";
 import { Calendar, TrendingUp, BarChart3 } from "lucide-react";
 import { useState } from "react";
 
