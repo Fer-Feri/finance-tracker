@@ -8,7 +8,7 @@ Financer helps you track income & expenses, analyze spending habits, and view be
 
 ## 📸 Screenshot
 
-![Financer App Dashboard showcasing transactions, reports, and RTL support.](financer_dashboard.png)
+![Financer App Dashboard showcasing transactions, reports, and RTL support.](public/financer_dashboard.png)
 
 ---
 
