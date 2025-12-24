@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { useMonthlyReportData } from "@/hooks/useMonthlyReportData";
 import { useMonthlyBreakdown } from "@/hooks/useMonthlyBreakdown";
 import MonthDetailModal from "./MonthDetailModal";
+import { formatLargeNumber } from "@/utils/formatNumber";
 
 // ============================================================
 // CONSTANTS
@@ -362,7 +363,7 @@ function SummaryCard({ title, icon, value, colorClass }: SummaryCardProps) {
       </div>
       {/* Value */}
       <p className="text-2xl font-bold tabular-nums">
-        {value.toLocaleString("fa-IR")}
+        {formatLargeNumber(value)}
       </p>
       <p className="mt-1 text-xs">تومان</p>
     </div>
