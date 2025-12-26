@@ -1,12 +1,13 @@
 "use client";
 
 import moment from "jalali-moment";
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState } from "react";
 import ReactCalendarHeatmap, {
   ReactCalendarHeatmapValue,
 } from "react-calendar-heatmap";
 import "react-calendar-heatmap/dist/styles.css";
 import { useReportChartsStore } from "@/store/useReportChartsStore";
+import { Calendar, TrendingDown, Hash } from "lucide-react";
 
 type HeatmapValue = ReactCalendarHeatmapValue<Date> & {
   count: number;
@@ -16,10 +17,7 @@ type HeatmapValue = ReactCalendarHeatmapValue<Date> & {
 export default function HeatmapChart() {
   const { getExpenseHeatmap } = useReportChartsStore();
 
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const [tooltipData, setTooltipData] = useState<HeatmapValue | null>(null);
-  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const [selectedData, setSelectedData] = useState<HeatmapValue | null>(null);
 
   // ================================================================
 
@@ -67,19 +65,70 @@ export default function HeatmapChart() {
     return "color-scale-1";
   };
 
-  // ===========================================
-  // ===========================================
+  // 🎯 کلیک روی مربع
+  const handleClick = (value: ReactCalendarHeatmapValue<Date> | undefined) => {
+    if (!value) {
+      setSelectedData(null);
+      return;
+    }
+    setSelectedData(value as HeatmapValue);
+  };
+
   // ===========================================
   return (
     <div className="bg-card rounded-lg border p-6">
-      <h3 className="text-md mb-6 font-medium">نقشه حرارتی هزینه‌ها</h3>
+      <h3 className="text-md mb-4 font-medium">نقشه حرارتی هزینه‌ها</h3>
 
-      {/* 🔒 container نسبی */}
-      <div
-        ref={containerRef}
-        className="relative max-w-full overflow-auto"
-        dir="ltr"
-      >
+      {/* 📊 باکس اطلاعات */}
+      <div className="bg-muted/50 mb-6 rounded-lg border p-4">
+        {selectedData ? (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            {/* تاریخ */}
+            <div className="flex items-center gap-2">
+              <Calendar className="text-muted-foreground h-4 w-4" />
+              <div>
+                <p className="text-muted-foreground text-xs">تاریخ</p>
+                <p className="font-medium">
+                  {moment(selectedData.date)
+                    .locale("fa")
+                    .format("jYYYY/jMM/jDD")}
+                </p>
+              </div>
+            </div>
+
+            {/* تعداد تراکنش */}
+            <div className="flex items-center gap-2">
+              <Hash className="text-muted-foreground h-4 w-4" />
+              <div>
+                <p className="text-muted-foreground text-xs">تعداد تراکنش</p>
+                <p className="font-medium">
+                  {selectedData.count.toLocaleString("fa-IR")} مورد
+                </p>
+              </div>
+            </div>
+
+            {/* مجموع هزینه */}
+            <div className="flex items-center gap-2">
+              <TrendingDown className="text-destructive h-4 w-4" />
+              <div>
+                <p className="text-muted-foreground text-xs">مجموع هزینه</p>
+                <p className="text-destructive font-semibold">
+                  {selectedData.total.toLocaleString("fa-IR")} تومان
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="py-2 text-center">
+            <p className="text-muted-foreground text-sm">
+              💡 روی هر مربع رنگی کلیک کنید تا جزئیات تراکنش‌ها را ببینید
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* 🗓️ Heatmap */}
+      <div className="relative max-w-full overflow-auto" dir="ltr">
         <div className="min-w-[1000px] md:min-w-[1500px]">
           <ReactCalendarHeatmap
             startDate={startDate}
@@ -102,43 +151,9 @@ export default function HeatmapChart() {
               "اسفند",
             ]}
             weekdayLabels={["ش", "ی", "د", "س", "چ", "پ", "ج"]}
-            onMouseOver={(event, value) => {
-              if (!value || !containerRef.current) return;
-
-              const rect = containerRef.current.getBoundingClientRect();
-
-              setTooltipData(value as HeatmapValue);
-              setTooltipPos({
-                x: event.clientX - rect.left,
-                y: event.clientY - rect.top,
-              });
-            }}
-            onMouseLeave={() => setTooltipData(null)}
+            onClick={handleClick}
           />
         </div>
-
-        {/* 💬 Tooltip */}
-        {tooltipData && (
-          <div
-            className="bg-popover pointer-events-none absolute z-50 rounded-md border px-3 py-2 text-sm shadow-lg"
-            style={{
-              left: tooltipPos.x + 12,
-              top: tooltipPos.y + 12,
-            }}
-          >
-            <p className="font-medium">
-              {moment(tooltipData.date).locale("fa").format("jYYYY/jMM/jDD")}
-            </p>
-
-            <p className="text-muted-foreground">
-              تعداد: {tooltipData.count} تراکنش
-            </p>
-
-            <p className="text-destructive font-semibold">
-              {tooltipData.total.toLocaleString("fa-IR")} تومان
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

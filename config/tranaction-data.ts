@@ -105,6 +105,16 @@ export const transactionsData: Transaction[] = [
     paymentMethod: "card",
   },
   {
+    id: "TRX050",
+    description: "اجاره خانه",
+    category: "home",
+    date: "1404/09/09",
+    amount: 11000000,
+    type: "expense",
+    status: "completed",
+    paymentMethod: "card",
+  },
+  {
     id: "TRX011",
     description: "پرداخت بیمه",
     category: "insurance",

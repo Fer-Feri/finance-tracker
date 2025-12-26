@@ -91,14 +91,19 @@ export const useReportChartsStore = create(() => ({
     const groupTnxByDay: Record<string, { count: number; total: number }> = {};
 
     expenses.forEach((t) => {
-      const date = moment(t.date, "jYYYY/jMM/jDD").format("jYYYY/jMM/jDD");
+      const date = moment(t.date, "jYYYY/jMM/jDD");
 
-      if (!groupTnxByDay[date]) {
-        groupTnxByDay[date] = { count: 0, total: 0 };
+      const thisYear = moment().jYear();
+
+      if (date.jYear() === thisYear) {
+        const shamsiDate = date.format("jYYYY/jMM/jDD");
+        if (!groupTnxByDay[shamsiDate]) {
+          groupTnxByDay[shamsiDate] = { count: 0, total: 0 };
+        }
+
+        groupTnxByDay[shamsiDate].count += 1;
+        groupTnxByDay[shamsiDate].total += t.amount;
       }
-
-      groupTnxByDay[date].count += 1;
-      groupTnxByDay[date].total += t.amount;
     });
 
     return Object.entries(groupTnxByDay)
