@@ -53,20 +53,20 @@ export const mainItems: NavItem[] = [
 ];
 
 const managementItems: NavItem[] = [
-  {
-    id: "goals",
-    title: "اهداف مالی",
-    href: "/dashboard/goals",
-    icon: Target,
-    badge: 3,
-  },
+  // {
+  //   id: "goals",
+  //   title: "اهداف مالی",
+  //   href: "/dashboard/goals",
+  //   icon: Target,
+  //   badge: 3,
+  // },
 
-  {
-    id: "accounts",
-    title: "حساب‌ها",
-    href: "/dashboard/accounts",
-    icon: Wallet,
-  },
+  // {
+  //   id: "accounts",
+  //   title: "حساب‌ها",
+  //   href: "/dashboard/accounts",
+  //   icon: Wallet,
+  // },
 
   {
     id: "settings",

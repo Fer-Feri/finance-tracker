@@ -168,7 +168,7 @@ export default function SidebarContent() {
       {/* Footer Section */}
       <div className="border-sidebar-border shrink-0 border-t p-4">
         <Link
-          href="/dashboard/help"
+          href="/dashboard/settings"
           className="bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent/80 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors"
         >
           <HelpCircle className="h-5 w-5 shrink-0" />
