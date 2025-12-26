@@ -1,10 +1,12 @@
 "use client";
 
-import ChartsView from "@/components/reports/ChartsView";
+import ChartsView from "@/components/reports/yearly-report/chart-section/ChartsView";
 import MonthlyReport from "@/components/reports/MonthlyReport";
 import YearlyReport from "@/components/reports/yearly-report/YearlyReport";
 import { Calendar, TrendingUp, BarChart3 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useTransactionStore } from "@/store/transactionStore";
+import { transactionsData } from "@/config/tranaction-data";
 
 interface TabsProps {
   id: "monthly" | "yearly" | "charts";
@@ -16,6 +18,14 @@ export default function Reports() {
   const [activeTab, setActiveTab] = useState<"monthly" | "yearly" | "charts">(
     "monthly",
   );
+
+  // ----------بعد اضافه کردن دیتابیس حذف میشه---------------
+  const { setTransactions } = useTransactionStore();
+
+  useEffect(() => {
+    setTransactions(transactionsData);
+  }, [setTransactions]);
+  // -------------------------
 
   const tabs: TabsProps[] = [
     {

@@ -17,6 +17,15 @@ interface CustomTooltipProps {
   label?: string;
 }
 
+interface CustomLegendItem {
+  value?: string;
+  color?: string;
+}
+
+interface CustomLegendProps {
+  payload?: CustomLegendItem[];
+}
+
 export const CustomTooltip = ({
   active,
   payload,
@@ -49,4 +58,22 @@ export const CustomTooltip = ({
     );
   }
   return null;
+};
+
+export const CustomLegend = ({ payload }: CustomLegendProps) => {
+  if (!payload || payload.length === 0) return null;
+
+  return (
+    <div className="mt-4 flex flex-wrap items-center justify-center gap-6">
+      {payload.map((entry, index) => (
+        <div key={index} className="flex items-center gap-2">
+          <span
+            className="h-3 w-3 rounded-sm"
+            style={{ backgroundColor: entry.color }}
+          />
+          <span className="text-muted-foreground text-sm">{entry.value}</span>
+        </div>
+      ))}
+    </div>
+  );
 };

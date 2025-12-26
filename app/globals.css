@@ -251,8 +251,107 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none; /* Chrome, Safari */
   }
-}
 
-/* ========================================
+  /* ========================================
+   🔥 Heatmap Chart Styles
    ======================================== */
-/* globals.css */
+
+  .react-calendar-heatmap {
+    direction: ltr;
+  }
+
+  .react-calendar-heatmap text {
+    @apply fill-muted-foreground text-[10px];
+  }
+
+  .react-calendar-heatmap .react-calendar-heatmap-small-text {
+    @apply text-[8px];
+  }
+
+  .react-calendar-heatmap rect:hover {
+    @apply stroke-primary;
+    stroke-width: 2px;
+  }
+
+  .color-empty {
+    fill: oklch(0.96 0.01 250); /* muted */
+  }
+
+  .color-scale-1 {
+    fill: oklch(0.92 0.08 20); /* خیلی کم */
+  }
+
+  .color-scale-2 {
+    fill: oklch(0.86 0.12 22);
+  }
+
+  .color-scale-3 {
+    fill: oklch(0.78 0.16 24);
+  }
+
+  .color-scale-4 {
+    fill: oklch(0.7 0.2 26);
+  }
+
+  .color-scale-5 {
+    fill: oklch(0.62 0.24 28);
+  }
+
+  .color-scale-6 {
+    fill: oklch(0.55 0.28 30);
+  }
+
+  .color-scale-7 {
+    fill: #ff3f7f; /* بیشترین */
+  }
+
+  @variant dark {
+    .color-empty {
+      fill: oklch(0.28 0.02 280);
+    }
+
+    .color-scale-1 {
+      fill: oklch(0.4 0.18 25);
+    }
+
+    .color-scale-2 {
+      fill: oklch(0.45 0.22 27);
+    }
+
+    .color-scale-3 {
+      fill: oklch(0.5 0.26 29);
+    }
+
+    .color-scale-4 {
+      fill: oklch(0.56 0.3 31);
+    }
+
+    .color-scale-5 {
+      fill: oklch(0.62 0.34 33);
+    }
+
+    .color-scale-6 {
+      fill: oklch(0.68 0.36 35);
+    }
+
+    .color-scale-7 {
+      fill: oklch(0.74 0.38 37); /* نئونی قوی */
+    }
+  }
+
+  /* کوچک‌تر کردن برچسب‌های Heatmap */
+  .react-calendar-heatmap text {
+    font-size: 5px !important; /* 👈 اندازه فونت کوچک‌تر */
+    fill: var(--muted-foreground) !important;
+    /* fill: hsl(var(--muted)) !important; */
+  }
+
+  /* اختیاری: فاصله بهتر */
+  .react-calendar-heatmap .react-calendar-heatmap-month-label {
+    font-size: 5px !important;
+  }
+
+  .react-calendar-heatmap .react-calendar-heatmap-weekday-label {
+    font-size: 5px !important;
+  }
+}

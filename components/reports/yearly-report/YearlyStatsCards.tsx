@@ -123,7 +123,7 @@ export default function YearlyStatsCards() {
 
               {/* مقدار فعلی */}
               <p className="text-foreground mb-3 text-2xl font-bold">
-                {formatLargeNumber(current)}{" "}
+                {formatLargeNumber(current)}
                 {/* <span className="text-muted-foreground text-base font-normal">
                   تومان
                 </span> */}
@@ -136,8 +136,8 @@ export default function YearlyStatsCards() {
                     نسبت به سال قبل:
                   </span>
                   <span className={`font-medium ${accentColor}`}>
-                    {isPositive ? "+" : ""}
                     {change.change.toLocaleString("fa-IR")}
+                    {isPositive ? "+" : ""}
                   </span>
                 </div>
               ) : (

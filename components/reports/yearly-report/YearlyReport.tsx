@@ -7,6 +7,7 @@ import moment from "jalali-moment";
 import { useGetAvailableYears } from "@/utils/yearlyReportHelpers";
 import YearlyStatsCards from "./YearlyStatsCards";
 import { useYearlyReportStore } from "@/store/useYearlyReportStore";
+import YearComparisonChart from "./YearComparisonChart";
 
 export default function YearlyReport() {
   const availableYears = useGetAvailableYears();
@@ -57,6 +58,7 @@ export default function YearlyReport() {
 
       {/* ✅ کامپوننت‌های جدا شده */}
       <YearlyStatsCards />
+      <YearComparisonChart />
     </div>
   );
 }
