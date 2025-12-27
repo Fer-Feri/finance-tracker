@@ -7,39 +7,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ──────────────────────────────────
-// Enums (مقادیر ثابت)
-// ──────────────────────────────────
-
-enum TransactionType {
-  INCOME // درآمد
-  EXPENSE // هزینه
-}
-
-enum TransactionStatus {
-  COMPLETED // تکمیل شده
-  PENDING // در انتظار
-  FAILED // ناموفق
-}
-
-enum PaymentMethod {
-  CASH // نقدی
-  CARD // کارت
-  ONLINE // آنلاین
-}
-
-// ──────────────────────────────────
-// Models (جدول‌ها)
-// ──────────────────────────────────
-
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-
-  // رابطه: یک کاربر چندین تراکنش داره
+  id           String        @id @default(uuid())
+  email        String        @unique
+  name         String?
+  createdAt    DateTime      @default(now())
   transactions Transaction[]
+}
+
+model Category {
+  id           String          @id @default(uuid())
+  name         String          @unique
+  icon         String
+  type         TransactionType
+  order        Int
+  createdAt    DateTime        @default(now())
+  transactions Transaction[]
+
+  @@index([type, order])
 }
 
 model Transaction {
@@ -52,8 +37,29 @@ model Transaction {
   date          DateTime
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
+  userId        String
+  categoryId    String
+  category      Category          @relation(fields: [categoryId], references: [id])
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // رابطه: یک تراکنش به یک کاربر تعلق داره
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([categoryId])
+  @@index([date])
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum TransactionStatus {
+  COMPLETED
+  PENDING
+  FAILED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  ONLINE
 }

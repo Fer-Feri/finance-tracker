@@ -4,11 +4,13 @@ import { CardDashboardItems } from "@/config/card-dashboard";
 import { cn } from "@/lib/utils";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { motion } from "framer-motion";
-import { useDashboardStore } from "@/store/dashbiardStore";
-import { transactionsData } from "@/config/tranaction-data";
-import { useEffect } from "react";
 import { formatLargeNumber } from "@/utils/formatNumber";
+import { Category, Transaction } from "@prisma/client";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
+type Props = {
+  transactions: (Transaction & { category: Category })[];
+};
 // ✅ Variant mapping: Clean & DRY
 const variantStyles = {
   primary: {
@@ -45,37 +47,26 @@ const variantStyles = {
   },
 } as const;
 
-export default function StatsGrid() {
+export default function StatsGrid({ transactions }: Props) {
   const {
-    setTransactions,
-    getThisMonthIncome,
-    getThisMonthExpense,
-    getThisMonthSavings,
-    getSavingsPercentage,
-    getThisYearTotalBalance,
+    thisMonthIncome,
+    thisMonthExpense,
+    thisMonthSavings,
+    savingsPercentage,
+    thisYearTotalBalance,
     getChangePercentage,
-  } = useDashboardStore();
-
-  useEffect(() => {
-    setTransactions(transactionsData);
-  }, [setTransactions]);
-
-  const income = getThisMonthIncome();
-  const expense = getThisMonthExpense();
-  const savings = getThisMonthSavings();
-  const savingsPercentage = getSavingsPercentage();
-  const totalBalance = getThisYearTotalBalance();
+  } = useDashboardStats(transactions);
 
   const getCardValue = (id: string) => {
     switch (id) {
       case "total-balance":
-        return totalBalance;
+        return thisYearTotalBalance;
       case "monthly-income":
-        return income;
+        return thisMonthIncome;
       case "monthly-expense":
-        return expense;
+        return thisMonthExpense;
       case "savings":
-        return savings;
+        return thisMonthSavings;
       default:
         return 0;
     }
@@ -86,7 +77,6 @@ export default function StatsGrid() {
       {CardDashboardItems.map((item, index) => {
         const styles = variantStyles[item.variant];
         const value = getCardValue(item.id);
-
         const changePercentage = getChangePercentage(item.id);
         const isPositive = changePercentage !== null && changePercentage >= 0;
 
