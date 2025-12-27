@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ──────────────────────────────────
+// Enums (مقادیر ثابت)
+// ──────────────────────────────────
+
+enum TransactionType {
+  INCOME // درآمد
+  EXPENSE // هزینه
+}
+
+enum TransactionStatus {
+  COMPLETED // تکمیل شده
+  PENDING // در انتظار
+  FAILED // ناموفق
+}
+
+enum PaymentMethod {
+  CASH // نقدی
+  CARD // کارت
+  ONLINE // آنلاین
+}
+
+// ──────────────────────────────────
+// Models (جدول‌ها)
+// ──────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+
+  // رابطه: یک کاربر چندین تراکنش داره
+  transactions Transaction[]
+}
+
+model Transaction {
+  id            String            @id @default(uuid())
+  amount        Float
+  type          TransactionType
+  status        TransactionStatus @default(COMPLETED)
+  paymentMethod PaymentMethod
+  description   String?
+  date          DateTime
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  // رابطه: یک تراکنش به یک کاربر تعلق داره
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
