@@ -17,12 +17,8 @@ export default function MainLayoutClient({
 
   return (
     <div className="bg-background flex min-h-screen">
-      {/* Sidebar ثابت دسکتاپ */}
       <Sidebar />
-
-      {/* Sidebar کشویی موبایل (جدید) */}
       <MobileSidebar />
-
       {/* Main Content Area */}
       <main className="flex min-w-0 flex-auto flex-col transition-all duration-300 lg:mr-64">
         <DashboardHeader title={pageTitle} />
