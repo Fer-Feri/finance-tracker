@@ -1,32 +1,32 @@
 "use client";
 
 // -------------------- Imports --------------------
-import { transactionsData } from "@/config/tranaction-data";
 import { cn } from "@/lib/utils";
-import { TransactionStatus, TransactionType } from "@/types/transaction";
 import { ArrowDownRight, ArrowUpLeft } from "lucide-react";
 import moment from "jalali-moment";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { useDashboardStore } from "@/store/dashbiardStore";
+import { Category, Transaction } from "@prisma/client";
+
+type Props = {
+  transactions: (Transaction & { category: Category })[];
+};
 
 // -------------------- Component --------------------
 
-export default function RecentTransactions() {
+export default function RecentTransactions({ transactions }: Props) {
   // -------------------- State --------------------
+  const currentYear = moment().jYear();
+  const currentMonth = moment().jMonth() + 1;
 
   // Toggle between showing only recent (5) or all monthly transactions
-  const {
-    showAllTransactions,
-    setShowAllTransactions,
-    currentYear,
-    currentMonth,
-  } = useDashboardStore();
+  const { showAllTransactions, setShowAllTransactions } = useDashboardStore();
 
   // -------------------- Data Filtering --------------------
 
   // Filter transactions that belong to the current Jalali month
-  const currentMonthTransactions = transactionsData.filter((transaction) => {
-    const transactionDate = moment(transaction.date, "jYYYY-jMM-jDD");
+  const currentMonthTransactions = transactions.filter((transaction) => {
+    const transactionDate = moment(transaction.date);
 
     return (
       transactionDate.jYear() === currentYear &&
@@ -37,18 +37,17 @@ export default function RecentTransactions() {
   // -------------------- UI Style Maps --------------------
 
   // Badge styles based on transaction status
-  const statusClasses: Record<TransactionStatus, string> = {
-    completed: "bg-secondary text-white",
-    pending: "bg-muted-foreground text-white",
-    failed: "bg-destructive text-white",
+  const statusClasses = {
+    COMPLETED: "bg-secondary text-white",
+    PENDING: "bg-muted-foreground text-white",
+    FAILED: "bg-destructive text-white",
   };
 
   // Icon background styles based on transaction type
-  const typeClasses: Record<TransactionType, string> = {
-    income: "bg-primary text-white",
-    expense: "bg-destructive text-white",
+  const typeClasses = {
+    INCOME: "bg-primary text-white",
+    EXPENSE: "bg-destructive text-white",
   };
-
   // -------------------- Display Logic --------------------
 
   // Decide how many transactions to show
@@ -110,7 +109,7 @@ export default function RecentTransactions() {
                         typeClasses[transaction.type],
                       )}
                     >
-                      {transaction.type === "income" ? (
+                      {transaction.type === "INCOME" ? (
                         <ArrowUpLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                       ) : (
                         <ArrowDownRight className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -127,13 +126,13 @@ export default function RecentTransactions() {
                       {/* Category + Date */}
                       <div className="flex items-center gap-1.5 sm:gap-2">
                         <span className="text-muted-foreground truncate text-[10px] sm:text-xs">
-                          {transaction.category}
+                          {transaction.category.name}
                         </span>
 
                         <span className="bg-border h-1 w-1 shrink-0 rounded-full" />
 
                         <span className="text-muted-foreground text-[10px] whitespace-nowrap sm:text-xs">
-                          {transaction.date}
+                          {moment(transaction.date).format("jYYYY/jMM/jDD")}
                         </span>
                       </div>
                     </div>
@@ -145,7 +144,7 @@ export default function RecentTransactions() {
                     <div
                       className={cn(
                         "flex items-baseline gap-0.5 text-sm font-semibold tabular-nums sm:text-base",
-                        transaction.type === "income"
+                        transaction.type === "INCOME"
                           ? "text-[var(--primary)]"
                           : "text-[var(--destructive)]",
                       )}
@@ -155,7 +154,7 @@ export default function RecentTransactions() {
                       </span>
 
                       <span className="text-[10px] sm:text-xs">
-                        {transaction.type === "income" ? "+" : "−"}{" "}
+                        {transaction.type === "INCOME" ? "+" : "−"}{" "}
                         <span className="text-[9px] md:text-xs">تومان</span>
                       </span>
                     </div>
@@ -167,9 +166,9 @@ export default function RecentTransactions() {
                         statusClasses[transaction.status],
                       )}
                     >
-                      {transaction.status === "completed"
+                      {transaction.status === "COMPLETED"
                         ? "تکمیل"
-                        : transaction.status === "pending"
+                        : transaction.status === "PENDING"
                           ? "در حال پردازش"
                           : "ناموفق"}
                     </span>

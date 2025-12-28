@@ -23,8 +23,8 @@ export default async function DashboardPage() {
   return (
     <div>
       <StatsGrid transactions={transactions} />
-      {/* <OverviewChart />
-      <RecentTransactions /> */}
+      <OverviewChart transactions={transactions} />
+      <RecentTransactions transactions={transactions} />
     </div>
   );
 }

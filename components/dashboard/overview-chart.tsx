@@ -11,8 +11,12 @@ import {
 } from "recharts";
 
 import { useMemo } from "react";
-import { useDashboardStore } from "@/store/dashbiardStore";
 import moment from "jalali-moment";
+import { Category, Transaction } from "@prisma/client";
+
+type Props = {
+  transactions: (Transaction & { category: Category })[];
+};
 
 // ✅ Custom Tooltip (اختیاری - برای نمایش بهتر)
 interface CustomTooltipProps {
@@ -50,8 +54,9 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   return null;
 };
 
-export default function OverviewChart() {
-  const { transactions, currentMonth, currentYear } = useDashboardStore();
+export default function OverviewChart({ transactions }: Props) {
+  const currentMonth = moment().jMonth() + 1;
+  const currentYear = moment().jYear();
 
   // =========================================================
   // ==========>>>>>>>>>=====💹اطلاعات چارت 6 ماه گذشته=💹=======<<<<<<<<<============
@@ -69,17 +74,16 @@ export default function OverviewChart() {
       }
 
       const monthTransactions = transactions.filter((transaction) => {
-        if (transaction.status !== "completed") return false;
-        const date = moment(transaction.date, "jYYYY-jMM-jDD");
+        const date = moment(transaction.date);
         return date.jYear() === targetYear && date.jMonth() + 1 === targetMonth;
       });
 
       const income = monthTransactions
-        .filter((t) => t.type === "income")
+        .filter((t) => t.type === "INCOME")
         .reduce((sum, t) => sum + t.amount, 0);
 
       const expense = monthTransactions
-        .filter((t) => t.type === "expense")
+        .filter((t) => t.type === "EXPENSE")
         .reduce((sum, t) => sum + t.amount, 0);
 
       monthData.push({
