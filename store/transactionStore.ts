@@ -70,7 +70,7 @@ interface TransactionStoreType {
   // ========== TRANSACTION CRUD ==========
   addTransaction: (transaction: Omit<Transaction, "id">) => void;
   editTransaction: (id: string, transaction: Partial<Transaction>) => void;
-  deleteTransaction: (id: string) => void;
+  // deleteTransaction: (id: string) => void;
 
   // ========== MODAL ACTIONS ==========
   setIsAddModalOpen: (isOpen: boolean) => void;
@@ -373,10 +373,10 @@ export const useTransactionStore = create<TransactionStoreType>()((
     /**
      * حذف تراکنش
      */
-    deleteTransaction: (id) =>
-      set((state) => ({
-        transactions: state.transactions.filter((t) => t.id !== id),
-      })),
+    // deleteTransaction: (id) =>
+    //   set((state) => ({
+    //     transactions: state.transactions.filter((t) => t.id !== id),
+    //   })),
 
     // ========== MODAL ACTIONS ==========
 

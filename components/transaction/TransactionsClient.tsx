@@ -17,7 +17,6 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import moment from "jalali-moment";
-import { Category, Transaction } from "@prisma/client";
 
 import { cn } from "@/lib/utils";
 import { TransactionStatus } from "@/types/transaction";
@@ -25,13 +24,9 @@ import { useTransactionStore } from "@/store/transactionStore";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import AddTransactionModal from "@/components/transaction/AddTransactionModal";
 import { getCurrentJalaliYearMonth } from "@/utils/date/dateHelpers";
-
-// ============================================================
-// TYPES
-// ============================================================
-type Props = {
-  transactions: (Transaction & { category: Category })[];
-};
+import { useTransactions } from "@/hooks/useTransactions";
+import { useDeleteTransaction } from "@/hooks/useDeleteTransaction";
+import { showConfirmToast } from "@/lib/toast-confirm";
 
 // ============================================================
 // CONSTANTS
@@ -66,29 +61,29 @@ const STATUS_ITEMS: { id: TransactionStatus; label: string }[] = [
   { id: "failed", label: "ناموفق" },
 ];
 
-export const TRANSACTION_CATEGORIES: Record<string, string> = {
-  // EXPENSE
-  food: "خوراک و نوشیدنی",
-  transport: "حمل و نقل",
-  shopping: "خرید و پوشاک",
-  bills: "قبض",
-  health: "بهداشت و درمان",
-  entertainment: "سرگرمی",
-  education: "آموزش",
-  home: "خانه و اجاره",
-  insurance: "بیمه",
-  gifts: "هدیه و کمک",
-  expenseOther: "سایر هزینه‌ها",
-  // INCOME
-  salary: "حقوق و دستمزد",
-  freelance: "پروژه و فریلنس",
-  business: "کسب و کار",
-  investment: "سرمایه‌گذاری",
-  rental: "اجاره و رهن",
-  bonus: "پاداش و عیدی",
-  giftReceived: "هدیه دریافتی",
-  incomeOther: "سایر درآمدها",
-};
+// export const TRANSACTION_CATEGORIES: Record<string, string> = {
+//   // EXPENSE
+//   food: "خوراک و نوشیدنی",
+//   transport: "حمل و نقل",
+//   shopping: "خرید و پوشاک",
+//   bills: "قبض",
+//   health: "بهداشت و درمان",
+//   entertainment: "سرگرمی",
+//   education: "آموزش",
+//   home: "خانه و اجاره",
+//   insurance: "بیمه",
+//   gifts: "هدیه و کمک",
+//   expenseOther: "سایر هزینه‌ها",
+//   // INCOME
+//   salary: "حقوق و دستمزد",
+//   freelance: "پروژه و فریلنس",
+//   business: "کسب و کار",
+//   investment: "سرمایه‌گذاری",
+//   rental: "اجاره و رهن",
+//   bonus: "پاداش و عیدی",
+//   giftReceived: "هدیه دریافتی",
+//   incomeOther: "سایر درآمدها",
+// };
 
 const CURRENT_YEAR = moment().locale("fa").jYear();
 const MIN_YEAR = CURRENT_YEAR;
@@ -97,7 +92,7 @@ const MAX_YEAR = CURRENT_YEAR + 1;
 // ============================================================
 // MAIN COMPONENT
 // ============================================================
-export default function TransactionsClient({ transactions }: Props) {
+export default function TransactionsClient() {
   // ============================================================
   // LOCAL STATE
   // ============================================================
@@ -109,6 +104,10 @@ export default function TransactionsClient({ transactions }: Props) {
   const [tempMonth, setTempMonth] = useState<number>(
     getCurrentJalaliYearMonth().month,
   );
+
+  const { data: transactions, isLoading, error } = useTransactions();
+  const { mutate: deleteTransactionAPI, isPending: isDeleting } =
+    useDeleteTransaction();
 
   // ============================================================
   // HOOKS
@@ -135,11 +134,14 @@ export default function TransactionsClient({ transactions }: Props) {
     getFilteredTransactions,
     getPageInfo,
     itemPerPage,
-    deleteTransaction,
     openAddModal,
     openEditModal,
     isAddModalOpen,
   } = useTransactionStore();
+
+  // ============================================================
+  // REACT QUERY
+  // ============================================================
 
   // ============================================================
   // COMPUTED VALUES
@@ -147,8 +149,10 @@ export default function TransactionsClient({ transactions }: Props) {
   const filteredTransactions = getFilteredTransactions();
   const { totalPages, startItem, endItem, totalItems } = getPageInfo();
 
-  // استخراج سال‌های یونیک از تراکنش‌ها
+  //============ استخراج سال‌های یونیک از تراکنش‌ها============
   const availableYears = useMemo(() => {
+    if (!transactions) return [];
+
     const years = new Set<number>();
     transactions.forEach((t) => {
       const tnxYear = moment(t.date).locale("fa").jYear();
@@ -159,9 +163,9 @@ export default function TransactionsClient({ transactions }: Props) {
     return Array.from(years).sort((a, b) => b - a);
   }, [transactions]);
   // --------------------------------
-  // استخراج ماه‌های یونیک برای سال انتخاب شده
+  //============ استخراج ماه‌های یونیک برای سال انتخاب شده=========
   const availableMonths = useMemo(() => {
-    if (!tempYear) return JALALI_MONTHS;
+    if (!tempYear || !transactions) return JALALI_MONTHS;
 
     const months = new Set<number>();
 
@@ -190,6 +194,7 @@ export default function TransactionsClient({ transactions }: Props) {
   // ============================================================
   // Sync Prisma data to Store
   useEffect(() => {
+    if (!transactions) return;
     setTransactions(
       transactions.map((t) => ({
         id: t.id,
@@ -301,10 +306,14 @@ export default function TransactionsClient({ transactions }: Props) {
     router.push("/dashboard/transactions", { scroll: false });
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("آیا از حذف این تراکنش مطمئن هستید؟")) {
-      deleteTransaction(id);
-    }
+  const handleDelete = (id: string, description: string) => {
+    showConfirmToast({
+      title: "حذف تراکنش",
+      message: `آیا از حذف تراکنش "${description}" مطمئن هستید؟`,
+      onConfirm: () => deleteTransactionAPI(id),
+      confirmText: "بله، حذف شود",
+      cancelText: "انصراف",
+    });
   };
 
   const handleCustomFilterToggle = () => {
@@ -364,6 +373,30 @@ export default function TransactionsClient({ transactions }: Props) {
       };
     }
   }, [searchParams]);
+
+  //=================== ✅ Loading State=======================
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="text-center">
+          <div className="border-primary inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-r-transparent"></div>
+          <p className="text-muted-foreground mt-4">در حال بارگذاری...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ Error State
+  if (error) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="text-destructive text-center">
+          <p className="text-lg font-semibold">خطا در بارگذاری تراکنش‌ها</p>
+          <p className="mt-2 text-sm">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   // ============================================================
   // RENDER
@@ -724,11 +757,17 @@ export default function TransactionsClient({ transactions }: Props) {
                         </button>
 
                         <button
-                          onClick={() => handleDelete(transaction.id)}
+                          onClick={() =>
+                            handleDelete(
+                              transaction.id,
+                              transaction.description || "",
+                            )
+                          }
+                          disabled={isDeleting}
                           className="text-muted-foreground hover:bg-destructive/70 hover:text-destructive-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
                           title="حذف تراکنش"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {isDeleting ? "..." : <Trash2 className="h-4 w-4" />}
                         </button>
                       </div>
                     </td>
