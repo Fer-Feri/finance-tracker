@@ -3,8 +3,6 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 شروع Seed کتگوری‌ها...");
-
   const incomeCategories = [
     { name: "حقوق و دستمزد", icon: "💰", type: "INCOME" as const, order: 1 },
     { name: "فریلنس و پروژه", icon: "💻", type: "INCOME" as const, order: 2 },
@@ -44,9 +42,6 @@ async function main() {
       create: cat,
     });
   }
-
-  console.log(`✅ ${incomeCategories.length} کتگوری درآمد ساخته شد`);
-  console.log(`✅ ${expenseCategories.length} کتگوری هزینه ساخته شد`);
 }
 
 main()

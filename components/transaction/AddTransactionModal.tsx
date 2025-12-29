@@ -14,6 +14,7 @@ import { TransactionType, TransactionStatus } from "@/types/transaction";
 import moment from "jalali-moment";
 import { useCreateTransaction } from "@/hooks/useCreateTransaction";
 import { useCategories } from "@/hooks/useCategories";
+import { useUpdateTransaction } from "@/hooks/useUpdateTransaction";
 
 // ==================== TYPES ====================
 
@@ -71,9 +72,14 @@ export default function AddTransactionModal() {
     editTransaction,
   } = useTransactionStore();
 
-  const { mutate: createTransaction, isPending } = useCreateTransaction();
+  const { mutate: createTransaction, isPending: isCreating } =
+    useCreateTransaction();
+  const { mutate: updateTransaction, isPending: isUpdating } =
+    useUpdateTransaction();
   const { data: categories = [], isLoading: categoriesLoading } =
     useCategories();
+
+  const isPending = isCreating || isUpdating;
 
   const refElem = useRef(null);
 
@@ -132,6 +138,8 @@ export default function AddTransactionModal() {
    * ✅ فقط وقتی type عوض میشه و category فعلی invalid شده
    */
   useEffect(() => {
+    if (typeModal === "edit") return;
+
     if (filteredCategories.length === 0) return;
 
     const isCurrentCategoryValid = filteredCategories.some(
@@ -145,7 +153,13 @@ export default function AddTransactionModal() {
         shouldDirty: false, // ✅ از dirty شدن فرم جلوگیری میکنه
       });
     }
-  }, [selectedType, filteredCategories, currentCategoryId, setValue]); // ✅ فقط وقتی type یا categories تغییر کنه
+  }, [
+    selectedType,
+    filteredCategories,
+    currentCategoryId,
+    setValue,
+    typeModal,
+  ]); // ✅ فقط وقتی type یا categories تغییر کنه
 
   // ========== Populate Form in Edit Mode ==========
   /**
@@ -153,20 +167,34 @@ export default function AddTransactionModal() {
    */
   useEffect(() => {
     if (isAddModalOpen && typeModal === "edit" && selectedTransaction) {
+      const rawDate = selectedTransaction.date;
+
+      let jalaliDate: string;
+
+      if (typeof rawDate === "string" && rawDate.includes("/")) {
+        jalaliDate = rawDate;
+      } else {
+        jalaliDate = moment(rawDate).format("jYYYY/jMM/jDD");
+      }
+
       reset({
         type: selectedTransaction.type,
         amount: selectedTransaction.amount,
         description: selectedTransaction.description || "",
-        categoryId: selectedTransaction.category?.id || "",
-        paymentMethod: selectedTransaction.paymentMethod.toLowerCase() as
-          | "card"
-          | "online"
-          | "cash",
+        categoryId: selectedTransaction.categoryId,
+        paymentMethod: (selectedTransaction.paymentMethod?.toLowerCase() ||
+          "online") as "card" | "online" | "cash",
         status: selectedTransaction.status.toLowerCase() as TransactionStatus,
-        date: selectedTransaction.date,
+        date: jalaliDate,
       });
     }
-  }, [isAddModalOpen, typeModal, selectedTransaction?.id]); // ✅ فقط وقتی modal باز میشه یا transaction تغییر کنه
+  }, [
+    isAddModalOpen,
+    typeModal,
+    selectedTransaction?.id,
+    reset,
+    selectedTransaction,
+  ]); // ✅ فقط وقتی modal باز میشه یا transaction تغییر کنه
 
   // ========== Close Modal on Outside Click ==========
   useClickOutside(refElem, () => {
@@ -175,67 +203,61 @@ export default function AddTransactionModal() {
   });
 
   // ========== Form Submit Handler ==========
+
   const onSubmit = (data: TransactionFormData) => {
-    // Validate amount
     if (!data.amount || data.amount <= 0) {
       console.error("❌ Invalid amount:", data.amount);
       return;
     }
 
-    // Validate category selection
     if (!data.categoryId) {
       console.error("❌ Category not selected");
       return;
     }
 
+    const transactionData = {
+      type: data.type.toUpperCase() as "INCOME" | "EXPENSE",
+      amount: Number(data.amount),
+      description: data.description,
+      categoryId: data.categoryId,
+      paymentMethod: data.paymentMethod.toUpperCase() as
+        | "CARD"
+        | "ONLINE"
+        | "CASH",
+      status: data.status.toUpperCase() as "COMPLETED" | "PENDING" | "FAILED",
+      date: data.date, // ✅ شمسی میره به بک‌اند
+    };
+
     if (typeModal === "add") {
-      createTransaction(
+      createTransaction(transactionData, {
+        onSuccess: () => {
+          setIsAddModalOpen(false);
+          reset({
+            type: "expense",
+            amount: 0,
+            description: "",
+            categoryId: "",
+            paymentMethod: "card",
+            status: "completed",
+            date: getTodayPersianDate(),
+          });
+        },
+      });
+    }
+
+    if (typeModal === "edit" && selectedTransaction?.id) {
+      updateTransaction(
         {
-          type: data.type.toUpperCase() as "INCOME" | "EXPENSE",
-          amount: Number(data.amount),
-          description: data.description,
-          categoryId: data.categoryId,
-          paymentMethod: data.paymentMethod.toUpperCase() as
-            | "CARD"
-            | "ONLINE"
-            | "CASH",
-          status: data.status.toUpperCase() as
-            | "COMPLETED"
-            | "PENDING"
-            | "FAILED",
-          date: data.date,
+          id: selectedTransaction.id,
+          data: transactionData,
         },
         {
           onSuccess: () => {
             setIsAddModalOpen(false);
-            reset({
-              type: "expense",
-              amount: 0,
-              description: "",
-              categoryId: "",
-              paymentMethod: "card",
-              status: "completed",
-              date: getTodayPersianDate(),
-            });
-          },
-          onError: (error) => {
-            console.error("❌ Error creating transaction:", error);
+            reset();
           },
         },
       );
-    } else if (typeModal === "edit" && selectedTransaction?.id) {
-      editTransaction(selectedTransaction.id, {
-        ...data,
-        type: data.type.toUpperCase() as "INCOME" | "EXPENSE",
-        amount: Number(data.amount),
-        paymentMethod: data.paymentMethod.toUpperCase() as
-          | "CARD"
-          | "ONLINE"
-          | "CASH",
-        status: data.status.toUpperCase() as "COMPLETED" | "PENDING" | "FAILED",
-      });
-      setIsAddModalOpen(false);
-      reset();
     }
   };
 

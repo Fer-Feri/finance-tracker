@@ -201,6 +201,7 @@ export default function TransactionsClient() {
         type: t.type.toLowerCase() as "income" | "expense",
         amount: t.amount,
         category: t.category.name,
+        categoryId: t.categoryId,
         description: t.description || "",
         date: moment(t.date).locale("fa").format("jYYYY/jMM/jDD"),
         status: t.status.toLowerCase() as TransactionStatus,
@@ -671,6 +672,7 @@ export default function TransactionsClient() {
 
                 return (
                   <tr key={transaction.id} className="border-border border-b">
+                    {/* type */}
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div
@@ -695,19 +697,19 @@ export default function TransactionsClient() {
                         </div>
                       </div>
                     </td>
-
+                    {/* category */}
                     <td className="p-4 text-center">
                       <span className="bg-secondary/80 text-secondary-foreground inline-block rounded-lg px-3 py-1 text-xs font-medium">
                         {transaction.category}
                       </span>
                     </td>
-
+                    {/* date */}
                     <td className="p-4 text-center">
                       <span className="text-muted-foreground px-4 py-4 text-center text-xs font-medium tabular-nums">
                         {transaction.date}
                       </span>
                     </td>
-
+                    {/* payment method */}
                     <td className="text-muted-foreground p-4 text-center text-xs">
                       <span>
                         {transaction.paymentMethod === "cash"
@@ -717,7 +719,7 @@ export default function TransactionsClient() {
                             : "آنلاین"}
                       </span>
                     </td>
-
+                    {/* amount */}
                     <td className="p-4 text-center">
                       <div
                         className={cn(
@@ -734,7 +736,7 @@ export default function TransactionsClient() {
                         <span>{transaction.type === "income" ? "+" : "-"}</span>
                       </div>
                     </td>
-
+                    {/* status */}
                     <td className="p-4 text-center">
                       <span
                         className={cn(
@@ -745,9 +747,10 @@ export default function TransactionsClient() {
                         {statusLabels[transaction.status]}
                       </span>
                     </td>
-
+                    {/* action button */}
                     <td className="table-cell p-4 text-center">
                       <div className="flex items-center justify-center gap-2">
+                        {/* edit btn */}
                         <button
                           onClick={() => openEditModal(transaction)}
                           className="text-muted-foreground hover:bg-accent/70 hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
@@ -755,7 +758,7 @@ export default function TransactionsClient() {
                         >
                           <Edit className="h-4 w-4" />
                         </button>
-
+                        {/* delete btn */}
                         <button
                           onClick={() =>
                             handleDelete(

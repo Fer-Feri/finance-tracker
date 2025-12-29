@@ -3,9 +3,7 @@ import {
   ArrowRightLeft,
   LayoutDashboard,
   Settings,
-  Target,
   TrendingUp,
-  Wallet,
 } from "lucide-react";
 
 export const mainItems: NavItem[] = [
@@ -21,7 +19,7 @@ export const mainItems: NavItem[] = [
     title: "تراکنش‌ها",
     href: "/dashboard/transactions",
     icon: ArrowRightLeft,
-    badge: "12",
+    // badge: "12",
   },
 
   {
