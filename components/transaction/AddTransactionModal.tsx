@@ -64,13 +64,8 @@ const getTodayPersianDate = (): string => {
 
 export default function AddTransactionModal() {
   // ========== Store & Hooks ==========
-  const {
-    isAddModalOpen,
-    setIsAddModalOpen,
-    typeModal,
-    selectedTransaction,
-    editTransaction,
-  } = useTransactionStore();
+  const { isAddModalOpen, setIsAddModalOpen, typeModal, selectedTransaction } =
+    useTransactionStore();
 
   const { mutate: createTransaction, isPending: isCreating } =
     useCreateTransaction();
@@ -131,7 +126,7 @@ export default function AddTransactionModal() {
         date: getTodayPersianDate(),
       });
     }
-  }, [isAddModalOpen, typeModal]); // ✅ فقط وابسته به باز/بسته شدن modal
+  }, [isAddModalOpen, typeModal, categoriesLoading, filteredCategories, reset]); // ✅ فقط وابسته به باز/بسته شدن modal
 
   // ========== Auto-select First Category When Type Changes ==========
   /**

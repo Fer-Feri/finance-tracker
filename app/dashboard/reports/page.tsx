@@ -1,96 +1,90 @@
+// src/app/reports/page.tsx
 "use client";
 
-import ChartsView from "@/components/reports/yearly-report/chart-section/ChartsView";
-import MonthlyReport from "@/components/reports/MonthlyReport";
-import YearlyReport from "@/components/reports/yearly-report/YearlyReport";
-import { Calendar, TrendingUp, BarChart3 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useTransactionStore } from "@/store/transactionStore";
-import { transactionsData } from "@/config/tranaction-data";
+import { useState } from "react";
+import { Calendar, BarChart3 } from "lucide-react";
+import YearSelector from "@/components/reports/YearSelector";
+import StatsCards from "@/components/reports/StatsCards";
+import MonthlyBreakdown from "@/components/reports/MonthlyBreakdown";
+import ChartsView from "@/components/reports/ChartsView";
+// import YearSelector from "@/components/reports/YearSelector";
+// import StatsCards from "@/components/reports/StatsCards";
+// import MonthlyBreakdown from "@/components/reports/MonthlyBreakdown";
+// import ChartsView from "@/components/reports/ChartsView";
 
-interface TabsProps {
-  id: "monthly" | "yearly" | "charts";
-  label: string;
-  icon: React.ElementType;
-}
+type ReportTab = "monthly" | "charts";
 
 export default function Reports() {
-  const [activeTab, setActiveTab] = useState<"monthly" | "yearly" | "charts">(
-    "monthly",
-  );
-
-  // ----------بعد اضافه کردن دیتابیس حذف میشه---------------
-  const { setTransactions } = useTransactionStore();
-
-  useEffect(() => {
-    setTransactions(transactionsData);
-  }, [setTransactions]);
-  // -------------------------
-
-  const tabs: TabsProps[] = [
-    {
-      id: "monthly",
-      label: "گزارش ماهانه",
-      icon: Calendar,
-    },
-    {
-      id: "yearly",
-      label: "گزارش سالانه",
-      icon: TrendingUp,
-    },
-    {
-      id: "charts",
-      label: "نمودارها",
-      icon: BarChart3,
-    },
-  ];
+  const [selectedYear, setSelectedYear] = useState(1404);
+  const [activeTab, setActiveTab] = useState<ReportTab>("monthly");
 
   return (
-    <div className="min-h-screen" dir="rtl">
-      <div className="space-y-6">
-        {/* ==================== Header با تب‌ها ======================= */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          {/* عنوان و توضیحات */}
-          <div className="space-y-1">
-            <h1 className="text-foreground text-2xl font-bold tracking-tight">
-              آمار و تحلیل وضعیت مالی
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              بررسی عملکرد مالی و روند درآمد و هزینه‌ها
-            </p>
-          </div>
+    <div className="min-h-screen space-y-6 p-6" dir="rtl">
+      {/* ========== HEADER ========== */}
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold">📊 آمار و تحلیل وضعیت مالی</h1>
+        <p className="text-muted-foreground text-sm">
+          بررسی عملکرد مالی و روند درآمد و هزینه‌ها
+        </p>
+      </div>
 
-          {/* تب‌های نوین */}
-          <div className="bg-muted/50 flex gap-1 rounded-xl p-1">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-300 ${
-                    activeTab === tab.id
-                      ? "bg-primary text-primary-foreground shadow-primary/25 shadow-lg"
-                      : "hover:bg-primary/15 hover:text-foreground text-foreground"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="inline text-xs md:text-base">
-                    {tab.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+      {/* ========== سلکتور سال (مشترک) ========== */}
+      <YearSelector
+        selectedYear={selectedYear}
+        onYearChange={setSelectedYear}
+      />
 
-        {/* ==================== محتوای اصلی ========================= */}
-        <div className="bg-card border-border/50 rounded-xl border p-6 shadow-sm">
-          {activeTab === "monthly" && <MonthlyReport />}
-          {activeTab === "yearly" && <YearlyReport />}
-          {activeTab === "charts" && <ChartsView />}
-        </div>
+      {/* ========== کارت‌های آماری (همیشه نمایش) ========== */}
+      <StatsCards year={selectedYear} />
+
+      {/* ========== تب‌ها ========== */}
+      <div className="flex gap-2 border-b">
+        <TabButton
+          active={activeTab === "monthly"}
+          onClick={() => setActiveTab("monthly")}
+          icon={<Calendar className="h-4 w-4" />}
+          label="جزئیات ماهانه"
+        />
+        <TabButton
+          active={activeTab === "charts"}
+          onClick={() => setActiveTab("charts")}
+          icon={<BarChart3 className="h-4 w-4" />}
+          label="نمودارها و تحلیل"
+        />
+      </div>
+
+      {/* ========== محتوای تب‌ها ========== */}
+      <div className="bg-card rounded-xl border p-6">
+        {activeTab === "monthly" ? (
+          <MonthlyBreakdown year={selectedYear} />
+        ) : (
+          <ChartsView year={selectedYear} />
+        )}
       </div>
     </div>
+  );
+}
+
+// ========== کامپوننت دکمه تب ==========
+interface TabButtonProps {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}
+
+function TabButton({ active, onClick, icon, label }: TabButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all ${
+        active
+          ? "border-primary text-primary border-b-2"
+          : "text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }
