@@ -1,12 +1,13 @@
 // src/app/reports/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Calendar, BarChart3 } from "lucide-react";
 import YearSelector from "@/components/reports/YearSelector";
 import StatsCards from "@/components/reports/StatsCards";
 import MonthlyBreakdown from "@/components/reports/MonthlyBreakdown";
 import ChartsView from "@/components/reports/ChartsView";
+import { useAvailableYears } from "@/hooks/useAvailableYears";
 // import YearSelector from "@/components/reports/YearSelector";
 // import StatsCards from "@/components/reports/StatsCards";
 // import MonthlyBreakdown from "@/components/reports/MonthlyBreakdown";
@@ -15,14 +16,55 @@ import ChartsView from "@/components/reports/ChartsView";
 type ReportTab = "monthly" | "charts";
 
 export default function Reports() {
-  const [selectedYear, setSelectedYear] = useState(1404);
+  const { years, isLoading, error, lastYear, oldestYear, hasYears } =
+    useAvailableYears();
+
+  // ✅ استفاده از useMemo برای محاسبه سال اولیه
+  const initialYear = useMemo(() => lastYear, [lastYear]);
+  const [manualYear, setManualYear] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<ReportTab>("monthly");
+
+  const selectedYear = manualYear ?? initialYear ?? null;
+
+  // نمایش خطا
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-destructive bg-destructive/10 rounded-lg p-4">
+          خطا در بارگذاری داده‌ها
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ نمایش لودینگ تا زمانی که selectedYear مقدار داشته باشه
+  if (isLoading || selectedYear === null) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-muted-foreground">در حال بارگذاری...</div>
+      </div>
+    );
+  }
+
+  // نمایش پیام خالی بودن
+  if (!hasYears) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-muted-foreground text-center">
+          <p className="text-lg font-medium">هنوز تراکنشی ثبت نشده</p>
+          <p className="mt-2 text-sm">
+            برای مشاهده گزارشات، ابتدا تراکنش‌های خود را ثبت کنید
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen space-y-6 p-6" dir="rtl">
       {/* ========== HEADER ========== */}
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold">📊 آمار و تحلیل وضعیت مالی</h1>
+        <h1 className="text-2xl font-bold"> آمار و تحلیل وضعیت مالی</h1>
         <p className="text-muted-foreground text-sm">
           بررسی عملکرد مالی و روند درآمد و هزینه‌ها
         </p>
@@ -31,7 +73,11 @@ export default function Reports() {
       {/* ========== سلکتور سال (مشترک) ========== */}
       <YearSelector
         selectedYear={selectedYear}
-        onYearChange={setSelectedYear}
+        onYearChange={setManualYear}
+        isloading={isLoading}
+        lastYear={lastYear}
+        oldestYear={oldestYear}
+        hasyears={hasYears}
       />
 
       {/* ========== کارت‌های آماری (همیشه نمایش) ========== */}
