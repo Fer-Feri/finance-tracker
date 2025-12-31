@@ -8,6 +8,7 @@ interface YearSelectorProps {
   lastYear: number;
   oldestYear: number;
   hasyears: boolean;
+  yearTransactionCount: number;
 }
 
 export default function YearSelector({
@@ -16,9 +17,10 @@ export default function YearSelector({
   isloading,
   lastYear,
   oldestYear,
+  yearTransactionCount,
 }: YearSelectorProps) {
   return (
-    <div className="bg-card flex items-center justify-between rounded-xl border p-4">
+    <div className="bg-card flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4">
       <div className="flex items-center gap-6">
         <span className="text-muted-foreground text-sm font-medium">
           انتخاب سال:
@@ -47,6 +49,9 @@ export default function YearSelector({
           </button>
         </div>
       </div>
+      <span className="text-muted-foreground text-xs">
+        تعداد تراکنش ({yearTransactionCount})
+      </span>
     </div>
   );
 }

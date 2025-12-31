@@ -20,7 +20,8 @@ interface createTransactionProps {
 // =============GET TRANSACTIONS===============
 export async function GET() {
   try {
-    const userId = "user-test-001";
+    // const userId = "user-test-001";
+    const userId = "guest-preview";
 
     const transations = await prisma.transaction.findMany({
       where: { userId },

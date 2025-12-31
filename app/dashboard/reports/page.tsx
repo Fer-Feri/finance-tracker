@@ -8,6 +8,7 @@ import StatsCards from "@/components/reports/StatsCards";
 import MonthlyBreakdown from "@/components/reports/MonthlyBreakdown";
 import ChartsView from "@/components/reports/ChartsView";
 import { useAvailableYears } from "@/hooks/useAvailableYears";
+import { useYearlyStats } from "@/hooks/useYearlyStats";
 // import YearSelector from "@/components/reports/YearSelector";
 // import StatsCards from "@/components/reports/StatsCards";
 // import MonthlyBreakdown from "@/components/reports/MonthlyBreakdown";
@@ -25,6 +26,9 @@ export default function Reports() {
   const [activeTab, setActiveTab] = useState<ReportTab>("monthly");
 
   const selectedYear = manualYear ?? initialYear ?? null;
+
+  const { stats } = useYearlyStats(selectedYear);
+  const yearTransactionCount = stats.transactionCount;
 
   // نمایش خطا
   if (error) {
@@ -61,7 +65,7 @@ export default function Reports() {
   }
 
   return (
-    <div className="min-h-screen space-y-6 p-6" dir="rtl">
+    <div className="min-h-screen space-y-6 p-2" dir="rtl">
       {/* ========== HEADER ========== */}
       <div className="space-y-1">
         <h1 className="text-2xl font-bold"> آمار و تحلیل وضعیت مالی</h1>
@@ -78,6 +82,7 @@ export default function Reports() {
         lastYear={lastYear}
         oldestYear={oldestYear}
         hasyears={hasYears}
+        yearTransactionCount={yearTransactionCount}
       />
 
       {/* ========== کارت‌های آماری (همیشه نمایش) ========== */}
