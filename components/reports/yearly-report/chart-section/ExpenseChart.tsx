@@ -5,7 +5,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import { useReportChartsStore } from "@/store/useReportChartsStore";
+import { useExpenseCharts } from "@/hooks/useExpenseCharts";
 import { formatLargeNumber } from "@/utils/formatNumber";
 
 // 📝 تعریف Type برای داده‌های نمودار
@@ -24,11 +24,20 @@ interface TooltipProps {
   }>;
 }
 
-export default function ExpenseChart() {
-  const { getExpenseByCategory, getIncomeByCategory } = useReportChartsStore();
+export default function ExpenseChart({ year }: { year: number }) {
+  const { expenseData, incomeData, isLoading } = useExpenseCharts(year);
 
-  const expenseData = getExpenseByCategory();
-  const incomeData = getIncomeByCategory();
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="bg-card rounded-lg p-6 shadow-md">
+          <p className="text-muted-foreground text-center">
+            در حال بارگذاری...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

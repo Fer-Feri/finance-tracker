@@ -26,10 +26,10 @@ export default function ChartsView({ year }: ChartsViewProps) {
       <YearComparisonChart currentYear={year} />
 
       {/* نمودارهای دسته‌بندی (درآمد و هزینه) */}
-      <ExpenseChart />
+      <ExpenseChart year={year} />
 
       {/* نقشه حرارتی */}
-      <HeatmapChart />
+      <HeatmapChart year={year} />
     </div>
   );
 }

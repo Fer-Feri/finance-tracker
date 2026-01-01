@@ -1,26 +1,28 @@
-const TRANSACTION_CATEGORIES = [
+export const TRANSACTION_CATEGORIES = [
   // 💸 EXPENSE
-  { value: "food", label: "خوراک و نوشیدنی", fill: "#f97316" }, // orange
-  { value: "transport", label: "حمل و نقل", fill: "#0ea5e9" }, // sky
-  { value: "shopping", label: "خرید و پوشاک", fill: "#ec4899" }, // pink
-  { value: "bills", label: "قبض", fill: "#6366f1" }, // indigo
-  { value: "health", label: "بهداشت و درمان", fill: "#22c55e" }, // green
-  { value: "entertainment", label: "سرگرمی", fill: "#a855f7" }, // purple
-  { value: "education", label: "آموزش", fill: "#14b8a6" }, // teal
-  { value: "home", label: "خانه و اجاره", fill: "#f43f5e" }, // rose
-  { value: "insurance", label: "بیمه", fill: "#64748b" }, // slate
-  { value: "gifts", label: "هدیه و کمک", fill: "#eab308" }, // yellow
-  { value: "expenseOther", label: "سایر هزینه‌ها", fill: "#94a3b8" }, // gray
+  { value: "خوراک و نوشیدنی", label: "خوراک و نوشیدنی", fill: "#f97316" },
+  { value: "حمل‌ونقل", label: "حمل‌ونقل", fill: "#0ea5e9" },
+  { value: "قبوض", label: "قبوض", fill: "#6366f1" },
+  { value: "خرید و سوپرمارکت", label: "خرید و سوپرمارکت", fill: "#ec4899" },
+  { value: "پوشاک و لوازم", label: "پوشاک و لوازم", fill: "#a855f7" },
+  { value: "سرگرمی و تفریح", label: "سرگرمی و تفریح", fill: "#f43f5e" },
+  { value: "بهداشت و درمان", label: "بهداشت و درمان", fill: "#22c55e" },
+  { value: "آموزش", label: "آموزش", fill: "#14b8a6" },
+  { value: "اجاره و مسکن", label: "اجاره و مسکن", fill: "#38bdf8" },
+  { value: "ورزش و تناسب", label: "ورزش و تناسب", fill: "#84cc16" },
+  { value: "زیبایی و آرایش", label: "زیبایی و آرایش", fill: "#fb7185" },
+  { value: "خانواده و بچه", label: "خانواده و بچه", fill: "#eab308" },
+  { value: "حیوان خانگی", label: "حیوان خانگی", fill: "#64748b" },
+  { value: "هدیه و کمک", label: "هدیه و کمک", fill: "#facc15" },
+  { value: "سایر هزینه", label: "سایر هزینه", fill: "#94a3b8" },
 
   // 💰 INCOME
-  { value: "salary", label: "حقوق و دستمزد", fill: "#16a34a" }, // dark green
-  { value: "freelance", label: "پروژه و فریلنس", fill: "#22d3ee" }, // cyan
-  { value: "business", label: "کسب و کار", fill: "#4ade80" }, // light green
-  { value: "investment", label: "سرمایه‌گذاری", fill: "#facc15" }, // gold
-  { value: "rental", label: "اجاره و رهن", fill: "#38bdf8" }, // blue
-  { value: "bonus", label: "پاداش و عیدی", fill: "#fb7185" }, // coral
-  { value: "giftReceived", label: "هدیه دریافتی", fill: "#c084fc" }, // violet
-  { value: "incomeOther", label: "سایر درآمدها", fill: "#86efac" }, // mint
+  { value: "حقوق و دستمزد", label: "حقوق و دستمزد", fill: "#16a34a" },
+  { value: "فریلنس و پروژه", label: "فریلنس و پروژه", fill: "#22d3ee" },
+  { value: "سرمایه‌گذاری", label: "سرمایه‌گذاری", fill: "#facc15" },
+  { value: "فروش", label: "فروش", fill: "#4ade80" },
+  { value: "هدیه و قرض", label: "هدیه و قرض", fill: "#c084fc" },
+  { value: "سایر درآمد", label: "سایر درآمد", fill: "#86efac" },
 ];
 
 export function getCategoryLabel(categoryName: string) {

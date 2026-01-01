@@ -1,19 +1,44 @@
-// src/hooks/useReportData.ts
-import { useMemo } from "react";
-import { useTransactionStore } from "@/store/transactionStore";
+import { TransactionStatus, TransactionType } from "@prisma/client";
+import { useQuery } from "@tanstack/react-query";
 import moment from "jalali-moment";
+import { useMemo } from "react";
+
+interface ApiTransaction {
+  id: string;
+  date: string; // فرمت: "2025-12-30" (میلادی از دیتابیس)
+  type: TransactionType;
+  amount: number;
+  status: TransactionStatus;
+  description?: string;
+  category?: {
+    name: string;
+  };
+}
 
 export function useReportData(year: number, month?: number) {
-  const { transactions } = useTransactionStore();
+  const {
+    data: transactions = [],
+    isLoading,
+    error,
+  } = useQuery<ApiTransaction[]>({
+    queryKey: ["transactions"],
+    queryFn: async () => {
+      const response = await fetch("/api/transactions");
 
-  return useMemo(() => {
-    // فیلتر بر اساس سال و ماه
-    const filteredTransactions = transactions.filter((t) => {
-      if (t.status !== "completed") return false;
+      if (!response.ok) throw new Error("خطا در دریافت تراکنش‌ها");
 
-      const transactionDate = moment(t.date, "jYYYY/jMM/jDD");
+      return response.json();
+    },
+  });
+
+  const data = useMemo(() => {
+    const filteredTransacions = transactions.filter((t) => {
+      const normalizedStatus = String(t.status).toLowerCase();
+      if (normalizedStatus !== "completed") return false;
+
+      const transactionDate = moment(t.date);
       const transactionYear = transactionDate.jYear();
-      const transactionMonth = transactionDate.jMonth() + 1; // moment.jMonth() از 0 شروع می‌شه
+      const transactionMonth = transactionDate.jMonth() + 1;
 
       if (transactionYear !== year) return false;
       if (month !== undefined && transactionMonth !== month) return false;
@@ -21,12 +46,12 @@ export function useReportData(year: number, month?: number) {
       return true;
     });
 
-    const totalIncome = filteredTransactions
-      .filter((t) => t.type === "income")
+    const totalIncome = filteredTransacions
+      .filter((t) => String(t.type).toLowerCase() === "income")
       .reduce((sum, t) => sum + t.amount, 0);
 
-    const totalExpense = filteredTransactions
-      .filter((t) => t.type === "expense")
+    const totalExpense = filteredTransacions
+      .filter((t) => String(t.type).toLowerCase() === "expense")
       .reduce((sum, t) => sum + t.amount, 0);
 
     const profit = totalIncome - totalExpense;
@@ -39,7 +64,13 @@ export function useReportData(year: number, month?: number) {
       totalExpense,
       profit,
       avgMonthlyProfit,
-      transactionCount: filteredTransactions.length,
+      transactionCount: filteredTransacions.length,
     };
   }, [transactions, year, month]);
+
+  return {
+    ...data,
+    isLoading,
+    error,
+  };
 }

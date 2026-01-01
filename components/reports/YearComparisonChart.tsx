@@ -22,6 +22,34 @@ export default function YearComparisonChart({
   const currentData = useReportData(currentYear);
   const previousData = useReportData(currentYear - 1);
 
+  // ✅ نمایش لودینگ
+  if (currentData.isLoading || previousData.isLoading) {
+    return (
+      <div className="bg-card rounded-lg border p-6 shadow-md">
+        <h3 className="text-card-foreground mb-4 text-lg font-semibold">
+          مقایسه با سال قبل
+        </h3>
+        <div className="flex h-[300px] items-center justify-center">
+          <p className="text-muted-foreground">در حال بارگذاری...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ نمایش خطا
+  if (currentData.error || previousData.error) {
+    return (
+      <div className="bg-card rounded-lg border p-6 shadow-md">
+        <h3 className="text-card-foreground mb-4 text-lg font-semibold">
+          مقایسه با سال قبل
+        </h3>
+        <div className="flex h-[300px] items-center justify-center">
+          <p className="text-destructive">خطا در دریافت داده‌ها</p>
+        </div>
+      </div>
+    );
+  }
+
   const chartData = [
     {
       category: "درآمد",
@@ -73,16 +101,18 @@ export default function YearComparisonChart({
             />
             <Legend
               wrapperStyle={{ fontSize: "13px" }}
-              formatter={(value) => `سال ${value}`}
+              formatter={(value) => ` سال ${value}`}
             />
             <Bar
-              dataKey={currentYear}
-              fill="hsl(var(--primary))"
+              dataKey={currentYear.toString()}
+              name={`${currentYear}`}
+              fill="var(--primary)"
               radius={[8, 8, 0, 0]}
             />
             <Bar
-              dataKey={currentYear - 1}
-              fill="hsl(var(--muted-foreground))"
+              dataKey={(currentYear - 1).toString()}
+              name={`${currentYear - 1}`}
+              fill="var(--destructive)"
               radius={[8, 8, 0, 0]}
             />
           </BarChart>

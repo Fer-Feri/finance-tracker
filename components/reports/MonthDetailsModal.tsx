@@ -2,8 +2,9 @@
 import { X } from "lucide-react";
 import { formatLargeNumber } from "@/utils/formatNumber";
 import moment from "jalali-moment";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useMonthDetailsModal } from "@/hooks/useMonthDetailsModal";
+import { useClickOutside } from "@/hooks/useClickOutside";
 
 // ✅ تعریف Interface برای Transaction
 interface Transaction {
@@ -33,7 +34,11 @@ export default function MonthDetailsModal({
 }: MonthDetailsModalProps) {
   const { data: transactions, isLoading, error } = useMonthDetailsModal();
 
-  console.log("🔍 Modal - تراکنش‌های دریافتی:", transactions?.length);
+  // close modal on click outside
+  const refElem = useRef(null);
+  useClickOutside(refElem, () => {
+    onClose();
+  });
 
   // فیلتر تراکنش‌های ماه
   const monthTransactions = useMemo(() => {
@@ -43,7 +48,6 @@ export default function MonthDetailsModal({
       // ✅ Normalize status
       const normalizedStatus = String(t.status).toLowerCase();
       if (normalizedStatus !== "completed") {
-        console.log(`❌ Modal - رد شد (status): ${t.status}`);
         return false;
       }
 
@@ -52,14 +56,9 @@ export default function MonthDetailsModal({
       const jYear = transactionDate.jYear();
       const jMonth = transactionDate.jMonth() + 1; // 1-12
 
-      console.log(
-        `📅 Modal - تراکنش: ${t.date} → ${jYear}/${jMonth} (انتظار: ${year}/${month})`,
-      );
-
       return jYear === year && jMonth === month;
     });
 
-    console.log(`✅ Modal - تراکنش‌های فیلتر شده: ${filtered.length}`);
     return filtered;
   }, [transactions, year, month]);
 
@@ -78,10 +77,6 @@ export default function MonthDetailsModal({
       return normalizedType === "expense";
     })
     .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
-
-  console.log(
-    `💰 Modal - درآمد: ${totalIncome.toLocaleString()}, هزینه: ${totalExpense.toLocaleString()}`,
-  );
 
   // ✅ نمایش لودینگ
   if (isLoading) {
@@ -107,7 +102,10 @@ export default function MonthDetailsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-card max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl border p-6 shadow-2xl">
+      <div
+        ref={refElem}
+        className="bg-card no-scrollbar max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl border p-6 shadow-2xl"
+      >
         {/* هدر */}
         <div className="mb-6 flex items-center justify-between">
           <div>
