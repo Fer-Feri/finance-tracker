@@ -1,9 +1,22 @@
 // src/components/reports/MonthDetailsModal.tsx
 import { X } from "lucide-react";
-import { useTransactionStore } from "@/store/transactionStore";
 import { formatLargeNumber } from "@/utils/formatNumber";
 import moment from "jalali-moment";
 import { useMemo } from "react";
+import { useMonthDetailsModal } from "@/hooks/useMonthDetailsModal";
+
+// ✅ تعریف Interface برای Transaction
+interface Transaction {
+  id: string;
+  amount: number;
+  date: string;
+  description: string;
+  type: string;
+  status: string;
+  category?: {
+    name: string;
+  };
+}
 
 interface MonthDetailsModalProps {
   year: number;
@@ -18,27 +31,79 @@ export default function MonthDetailsModal({
   monthName,
   onClose,
 }: MonthDetailsModalProps) {
-  const { transactions } = useTransactionStore();
+  const { data: transactions, isLoading, error } = useMonthDetailsModal();
+
+  console.log("🔍 Modal - تراکنش‌های دریافتی:", transactions?.length);
 
   // فیلتر تراکنش‌های ماه
   const monthTransactions = useMemo(() => {
-    return transactions.filter((t) => {
-      if (t.status !== "completed") return false;
-      const transactionDate = moment(t.date, "jYYYY/jMM/jDD");
-      return (
-        transactionDate.jYear() === year &&
-        transactionDate.jMonth() + 1 === month
+    if (!transactions || transactions.length === 0) return [];
+
+    const filtered = transactions.filter((t: Transaction) => {
+      // ✅ Normalize status
+      const normalizedStatus = String(t.status).toLowerCase();
+      if (normalizedStatus !== "completed") {
+        console.log(`❌ Modal - رد شد (status): ${t.status}`);
+        return false;
+      }
+
+      // ✅ تبدیل تاریخ میلادی به شمسی
+      const transactionDate = moment(t.date);
+      const jYear = transactionDate.jYear();
+      const jMonth = transactionDate.jMonth() + 1; // 1-12
+
+      console.log(
+        `📅 Modal - تراکنش: ${t.date} → ${jYear}/${jMonth} (انتظار: ${year}/${month})`,
       );
+
+      return jYear === year && jMonth === month;
     });
+
+    console.log(`✅ Modal - تراکنش‌های فیلتر شده: ${filtered.length}`);
+    return filtered;
   }, [transactions, year, month]);
 
+  // ✅ محاسبه درآمد با Normalize
   const totalIncome = monthTransactions
-    .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0);
+    .filter((t: Transaction) => {
+      const normalizedType = String(t.type).toLowerCase();
+      return normalizedType === "income";
+    })
+    .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
 
+  // ✅ محاسبه هزینه با Normalize
   const totalExpense = monthTransactions
-    .filter((t) => t.type === "expense")
-    .reduce((sum, t) => sum + t.amount, 0);
+    .filter((t: Transaction) => {
+      const normalizedType = String(t.type).toLowerCase();
+      return normalizedType === "expense";
+    })
+    .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
+
+  console.log(
+    `💰 Modal - درآمد: ${totalIncome.toLocaleString()}, هزینه: ${totalExpense.toLocaleString()}`,
+  );
+
+  // ✅ نمایش لودینگ
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="bg-card rounded-xl border p-6">
+          <div className="text-muted-foreground">در حال بارگذاری...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ نمایش خطا
+  if (error) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="bg-card rounded-xl border p-6">
+          <div className="text-destructive">خطا در دریافت داده‌ها</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -99,29 +164,35 @@ export default function MonthDetailsModal({
         {monthTransactions.length > 0 ? (
           <div className="space-y-2">
             <h3 className="mb-3 font-semibold">لیست تراکنش‌ها</h3>
-            {monthTransactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className="bg-muted/30 flex items-center justify-between rounded-lg border p-3"
-              >
-                <div className="flex-1">
-                  <p className="font-medium">{transaction.description}</p>
-                  <p className="text-muted-foreground text-xs">
-                    {transaction.date} • {transaction.category}
+            {monthTransactions.map((transaction: Transaction) => {
+              // ✅ Normalize برای نمایش
+              const normalizedType = String(transaction.type).toLowerCase();
+
+              return (
+                <div
+                  key={transaction.id}
+                  className="bg-muted/30 flex items-center justify-between rounded-lg border p-3"
+                >
+                  <div className="flex-1">
+                    <p className="font-medium">{transaction.description}</p>
+                    <p className="text-muted-foreground text-xs">
+                      {moment(transaction.date).format("jYYYY/jMM/jDD")} •{" "}
+                      {transaction.category?.name || "بدون دسته"}
+                    </p>
+                  </div>
+                  <p
+                    className={`text-lg font-bold ${
+                      normalizedType === "income"
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {normalizedType === "income" ? "+" : "-"}
+                    {formatLargeNumber(transaction.amount)}
                   </p>
                 </div>
-                <p
-                  className={`text-lg font-bold ${
-                    transaction.type === "income"
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {transaction.type === "income" ? "+" : "-"}
-                  {formatLargeNumber(transaction.amount)}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-muted-foreground py-12 text-center">

@@ -1,8 +1,8 @@
 // src/components/reports/MonthlyBreakdown.tsx
 import { useState } from "react";
-import { useAllMonthsData } from "@/hooks/useAllMonthsData";
 import { formatLargeNumber } from "@/utils/formatNumber";
 import MonthDetailsModal from "./MonthDetailsModal";
+import { useAllMonthsData } from "@/hooks/useAllMonthsData";
 
 interface MonthlyBreakdownProps {
   year: number;
@@ -10,7 +10,53 @@ interface MonthlyBreakdownProps {
 
 export default function MonthlyBreakdown({ year }: MonthlyBreakdownProps) {
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
-  const monthsData = useAllMonthsData(year);
+  const {
+    data: monthsData,
+    isLoading,
+    isFetching,
+    error,
+  } = useAllMonthsData(year);
+
+  // ✅ نمایش لودینگ
+  if (isLoading || isFetching) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-muted-foreground">در حال بارگذاری...</div>
+      </div>
+    );
+  }
+
+  // ✅ نمایش خطا
+  if (error) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-destructive bg-destructive/10 rounded-lg p-4">
+          خطا در دریافت داده‌ها
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ بررسی دقیق داده
+  if (!monthsData) {
+    console.warn("⚠️ monthsData is undefined/null");
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-muted-foreground">داده بارگذاری نشده</div>
+      </div>
+    );
+  }
+
+  if (monthsData.length === 0) {
+    console.warn("⚠️ monthsData is empty array");
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-muted-foreground">
+          داده‌ای برای سال {year} وجود ندارد
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -38,7 +84,7 @@ export default function MonthlyBreakdown({ year }: MonthlyBreakdownProps) {
       </div>
 
       {/* مودال جزئیات */}
-      {selectedMonth && (
+      {selectedMonth !== null && (
         <MonthDetailsModal
           year={year}
           month={selectedMonth}
