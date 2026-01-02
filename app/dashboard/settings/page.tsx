@@ -13,7 +13,6 @@ import {
   Upload,
   Trash2,
   User,
-  Mail,
   HelpCircle,
   ChevronLeft,
   Headset,
@@ -21,10 +20,11 @@ import {
   Instagram,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { useTheme } from "next-themes";
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   return (
     <div className="container mx-auto max-w-4xl p-4">
@@ -99,7 +99,11 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between rounded-lg border p-4">
               <div className="flex items-center gap-3">
                 <div className="bg-primary/10 rounded-full p-2">
-                  <Moon className="text-primary h-5 w-5" />
+                  {theme === "dark" ? (
+                    <Moon className="text-primary h-5 w-5" />
+                  ) : (
+                    <Sun className="text-primary h-5 w-5" />
+                  )}
                 </div>
                 <div>
                   <p className="font-medium">حالت تاریک</p>
@@ -109,18 +113,14 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <Switch dir="ltr" id="dark-mode" />
-            </div>
-
-            {/* جداکننده هزارگان */}
-            <div className="flex items-center justify-between rounded-lg border p-4">
-              <div>
-                <p className="font-medium">جداکننده هزارگان</p>
-                <p className="text-muted-foreground text-sm">
-                  نمایش اعداد با کاما (۱۲۳,۴۵۶)
-                </p>
-              </div>
-              <Switch dir="ltr" id="number-format" defaultChecked />
+              <Switch
+                checked={resolvedTheme === "dark"}
+                onCheckedChange={(checked) =>
+                  setTheme(checked ? "dark" : "light")
+                }
+                dir="ltr"
+                id="dark-mode"
+              />
             </div>
           </div>
         </Card>

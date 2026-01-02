@@ -1,7 +1,7 @@
 // src/app/reports/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Calendar, BarChart3 } from "lucide-react";
 import YearSelector from "@/components/reports/YearSelector";
 import StatsCards from "@/components/reports/StatsCards";

@@ -13,6 +13,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.36.5",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^5.22.0",
     "@radix-ui/react-avatar": "^1.1.11",
@@ -26,7 +27,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "framer-motion": "^12.23.25",
+    "framer-motion": "^12.23.26",
     "jalali-moment": "^3.3.11",
     "lucide-react": "^0.556.0",
     "next": "16.0.7",
