@@ -7,8 +7,10 @@ export interface UserProfile {
 
 export interface HeaderLeftProps {
   user: UserProfile;
+  isGuest: boolean;
 }
 
 export interface ProfileProps {
   user: UserProfile;
+  isGuest: boolean;
 }

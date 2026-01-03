@@ -4,8 +4,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, TrendingUp, BarChart3, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useUser } from "@/context/user-context";
 
-export function AnimatedAuthPage() {
+export function LandingPage() {
+  const { enterDemo } = useUser();
+
+  const handleDemo = () => {
+    enterDemo();
+  };
+
   return (
     <div className="from-background via-background to-primary/5 relative min-h-screen overflow-hidden bg-gradient-to-br">
       {/* 🌟 پس‌زمینه ساده */}
@@ -66,7 +73,7 @@ export function AnimatedAuthPage() {
               <Link href="/sign-in">
                 <Button
                   size="lg"
-                  className="group bg-primary w-full px-8 text-base font-bold shadow-lg transition-all hover:shadow-xl sm:w-auto"
+                  className="group bg-primary w-full cursor-pointer px-8 text-base font-bold shadow-lg transition-all hover:shadow-xl sm:w-auto"
                 >
                   <span className="flex items-center gap-2">
                     ورود / ثبت‌نام
@@ -75,15 +82,14 @@ export function AnimatedAuthPage() {
                 </Button>
               </Link>
 
-              <Link href="/dashboard">
-                <Button
-                  size="lg"
-                  // variant="outline"
-                  className="!bg-destructive text-muted !hover:text-prima w-full border-2 px-8 text-base font-bold transition-all sm:w-auto"
-                >
-                  مشاهده نسخه نمایشی
-                </Button>
-              </Link>
+              <Button
+                onClick={handleDemo}
+                size="lg"
+                // variant="outline"
+                className="!bg-destructive text-muted !hover:text-prima w-full cursor-pointer border-2 px-8 text-base font-bold transition-all sm:w-auto"
+              >
+                مشاهده نسخه نمایشی
+              </Button>
             </motion.div>
             {/* ✨ کارت‌های ویژگی */}
             <motion.div

@@ -181,14 +181,16 @@ export default function RecentTransactions({ transactions }: Props) {
       </LayoutGroup>
 
       {/* ---------- Show More / Less Button ---------- */}
-      <motion.button
-        onClick={() => setShowAllTransactions()}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="border-border hover:bg-accent mt-4 w-full rounded-lg border py-2 text-xs font-medium transition-all duration-300 sm:mt-6 sm:py-2.5 sm:text-sm"
-      >
-        {showAllTransactions ? "نمایش کمتر" : "مشاهده همه تراکنش‌ها"}
-      </motion.button>
+      {currentMonthTransactions.length > 5 && (
+        <motion.button
+          onClick={() => setShowAllTransactions()}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="border-border hover:bg-accent mt-4 w-full rounded-lg border py-2 text-xs font-medium transition-all duration-300 sm:mt-6 sm:py-2.5 sm:text-sm"
+        >
+          {showAllTransactions ? "نمایش کمتر" : "مشاهده همه تراکنش‌ها"}
+        </motion.button>
+      )}
     </div>
   );
 }

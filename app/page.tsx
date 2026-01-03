@@ -1,4 +1,4 @@
-import { AnimatedAuthPage } from "@/components/auth/animated-auth-page";
+import { LandingPage } from "@/components/auth/landing-page";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 
@@ -9,5 +9,5 @@ export default async function HomePage() {
     redirect("/dashboard");
   }
 
-  return <AnimatedAuthPage />;
+  return <LandingPage />;
 }

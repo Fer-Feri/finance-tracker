@@ -18,10 +18,15 @@ interface createTransactionProps {
 }
 
 // =============GET TRANSACTIONS===============
-export async function GET() {
+export async function GET(request: Request) {
   try {
     // const userId = "user-test-001";
-    const userId = "guest-preview";
+    // const userId = "guest-preview";
+    const userId = request.headers.get("x-user-id");
+
+    if (!userId) {
+      return NextResponse.json({ error: "آی دی یافت نشد" }, { status: 401 });
+    }
 
     const transations = await prisma.transaction.findMany({
       where: { userId },
@@ -41,6 +46,11 @@ export async function GET() {
 // =============CREATE TRANSACTIONS===============
 export async function POST(request: Request) {
   try {
+    const userId = request.headers.get("x-user-id");
+    if (!userId) {
+      return NextResponse.json({ error: "آی دی یافت نشد" }, { status: 401 });
+    }
+
     const body: createTransactionProps = await request.json();
 
     // ✅ Log کردن داده‌های دریافتی
@@ -49,7 +59,6 @@ export async function POST(request: Request) {
       !body.amount ||
       !body.categoryId ||
       !body.date ||
-      !body.description ||
       !body.paymentMethod ||
       !body.status
     ) {
@@ -70,7 +79,7 @@ export async function POST(request: Request) {
     const gregorianDate = persianToGregorian(body.date);
 
     const dataToCreate = {
-      userId: "user-test-001",
+      userId,
       amount: body.amount,
       type: body.type,
       status: body.status,

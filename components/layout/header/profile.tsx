@@ -5,7 +5,7 @@ import { ProfileProps } from "@/types/user-profile";
 import ProfileMenu from "./profileMenu";
 import { useState } from "react";
 
-export default function Profile({ user }: ProfileProps) {
+export default function Profile({ user, isGuest }: ProfileProps) {
   const [isOpenMenuProfile, setIsOpenMenuProfile] = useState(false);
   return (
     <div className="relative">
@@ -39,7 +39,11 @@ export default function Profile({ user }: ProfileProps) {
 
       {/* Profile Menu */}
       {isOpenMenuProfile && (
-        <ProfileMenu user={user} setIsOpenMenuProfile={setIsOpenMenuProfile} />
+        <ProfileMenu
+          user={user}
+          isGuest={isGuest}
+          setIsOpenMenuProfile={setIsOpenMenuProfile}
+        />
       )}
     </div>
   );

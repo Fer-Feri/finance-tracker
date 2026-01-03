@@ -30,7 +30,7 @@ export default function Reports() {
   const { stats } = useYearlyStats(selectedYear);
   const yearTransactionCount = stats.transactionCount;
 
-  // نمایش خطا
+  // 1. خطا
   if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -41,8 +41,8 @@ export default function Reports() {
     );
   }
 
-  // ✅ نمایش لودینگ تا زمانی که selectedYear مقدار داشته باشه
-  if (isLoading || selectedYear === null) {
+  // 2. لودینگ واقعی
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-muted-foreground">در حال بارگذاری...</div>
@@ -50,7 +50,7 @@ export default function Reports() {
     );
   }
 
-  // نمایش پیام خالی بودن
+  // 3. هیچ دیتایی وجود ندارد (مخصوص Clerk تازه)
   if (!hasYears) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -62,6 +62,11 @@ export default function Reports() {
         </div>
       </div>
     );
+  }
+
+  // 4. انتخاب سال (بعد از اطمینان از وجود دیتا)
+  if (selectedYear === null) {
+    return null; // یا fallback کوچک
   }
 
   return (

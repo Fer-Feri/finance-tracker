@@ -13,6 +13,7 @@ export default function SignUpPage() {
       {/* کارت فرم Clerk */}
       <div className="relative z-10">
         <SignUp
+          forceRedirectUrl="/dashboard"
           appearance={{
             theme: "simple",
             layout: {

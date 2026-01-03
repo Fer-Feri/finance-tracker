@@ -76,6 +76,8 @@ export default function AddTransactionModal() {
 
   const isPending = isCreating || isUpdating;
 
+  // برای تشخیص «اولین باز شدن مودال»
+  // برای useclickoutside
   const refElem = useRef(null);
 
   // ========== React Hook Form Setup ==========
@@ -115,7 +117,12 @@ export default function AddTransactionModal() {
    * ✅ فقط در باز شدن modal و در حالت add اجرا میشه
    */
   useEffect(() => {
-    if (isAddModalOpen && typeModal === "add" && !categoriesLoading) {
+    if (
+      isAddModalOpen &&
+      typeModal === "add" &&
+      !categoriesLoading &&
+      !refElem.current
+    ) {
       reset({
         type: "expense",
         amount: 0,

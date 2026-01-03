@@ -8,16 +8,33 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await params;
+    const userId = request.headers.get("x-user-id");
 
-    if (!id) {
+    if (!userId) {
       return NextResponse.json(
-        { error: "شناسه تراکنش الزامی است" },
-        { status: 400 },
+        { error: "حذف در حالت دمو غیرفعال است" },
+        { status: 401 },
       );
     }
 
-    await prisma.transaction.delete({ where: { id: id } });
+    if (userId === "guest-preview") {
+      return NextResponse.json(
+        { error: "Demo Mode: حذف تراکنش غیرفعال است" },
+        { status: 401 },
+      );
+    }
+    const { id } = await params;
+
+    const result = await prisma.transaction.deleteMany({
+      where: { id, userId },
+    });
+
+    if (result.count === 0) {
+      return NextResponse.json(
+        { error: "تراکنش یافت نشد یا مجاز نیست" },
+        { status: 404 },
+      );
+    }
 
     return NextResponse.json({ message: "تراکنش با موفقیت حذف شد" });
   } catch (error: unknown) {
@@ -41,12 +58,27 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const userId = request.headers.get("x-user-id");
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "ویرایش در حالت دمو غیرفعال است" },
+        { status: 401 },
+      );
+    }
+
+    if (userId === "guest-preview") {
+      return NextResponse.json(
+        { error: "Demo Mode: ویرایش تراکنش غیرفعال است" },
+        { status: 401 },
+      );
+    }
     const { id } = await params;
 
     const body = await request.json();
 
-    const existingTransaction = await prisma.transaction.findUnique({
-      where: { id: id },
+    const existingTransaction = await prisma.transaction.findFirst({
+      where: { id, userId },
     });
 
     if (!existingTransaction) {
@@ -55,8 +87,8 @@ export async function PUT(
 
     const dateObject = body.date ? persianToGregorian(body.date) : new Date();
 
-    const updateTransaction = await prisma.transaction.update({
-      where: { id: id },
+    const result = await prisma.transaction.updateMany({
+      where: { id, userId },
       data: {
         type: body.type,
         amount: body.amount,
@@ -66,6 +98,18 @@ export async function PUT(
         status: body.status,
         categoryId: body.categoryId,
       },
+      // include: { category: true },
+    });
+
+    if (result.count === 0) {
+      return NextResponse.json(
+        { error: "تراکنش یافت نشد یا مجاز نیست" },
+        { status: 404 },
+      );
+    }
+
+    const updateTransaction = await prisma.transaction.findFirst({
+      where: { id, userId },
       include: { category: true },
     });
 

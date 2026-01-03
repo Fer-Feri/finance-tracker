@@ -13,6 +13,7 @@ export default function SignInPage() {
       {/* کارت فرم Clerk */}
       <div className="relative z-10">
         <SignIn
+          forceRedirectUrl="/dashboard"
           appearance={{
             theme: "simple",
             layout: {

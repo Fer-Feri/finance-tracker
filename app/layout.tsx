@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { Toaster } from "react-hot-toast";
 import { ClerkProvider } from "@clerk/nextjs";
+import { UserContextProvider } from "@/context/user-context";
 
 export const metadata: Metadata = {
   title: "Finance Tracker",
@@ -86,16 +87,16 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider localization={customLocalization}>
-      <html lang="fa" dir="rtl" suppressHydrationWarning>
+      <html lang="fa" dir="rtl" className="dark" suppressHydrationWarning>
         <body className="bg-background">
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
+            defaultTheme="dark"
             enableSystem
             disableTransitionOnChange
           >
             <QueryProvider>
-              {children}
+              <UserContextProvider>{children}</UserContextProvider>
               <Toaster
                 position="top-center"
                 toastOptions={{

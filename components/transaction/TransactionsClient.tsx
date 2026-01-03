@@ -61,30 +61,6 @@ const STATUS_ITEMS: { id: TransactionStatus; label: string }[] = [
   { id: "failed", label: "ناموفق" },
 ];
 
-// export const TRANSACTION_CATEGORIES: Record<string, string> = {
-//   // EXPENSE
-//   food: "خوراک و نوشیدنی",
-//   transport: "حمل و نقل",
-//   shopping: "خرید و پوشاک",
-//   bills: "قبض",
-//   health: "بهداشت و درمان",
-//   entertainment: "سرگرمی",
-//   education: "آموزش",
-//   home: "خانه و اجاره",
-//   insurance: "بیمه",
-//   gifts: "هدیه و کمک",
-//   expenseOther: "سایر هزینه‌ها",
-//   // INCOME
-//   salary: "حقوق و دستمزد",
-//   freelance: "پروژه و فریلنس",
-//   business: "کسب و کار",
-//   investment: "سرمایه‌گذاری",
-//   rental: "اجاره و رهن",
-//   bonus: "پاداش و عیدی",
-//   giftReceived: "هدیه دریافتی",
-//   incomeOther: "سایر درآمدها",
-// };
-
 const CURRENT_YEAR = moment().locale("fa").jYear();
 const MIN_YEAR = CURRENT_YEAR;
 const MAX_YEAR = CURRENT_YEAR + 1;

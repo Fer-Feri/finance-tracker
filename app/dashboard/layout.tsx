@@ -1,16 +1,20 @@
-// app/dashboard/layout.tsx (یا هر مسیری که هستید)
-import { Metadata } from "next";
+"use client";
 import MainLayoutClient from "@/components/layout/main-layout-client";
-
-export const metadata: Metadata = {
-  title: "Finance Tracker Dashboard",
-  description: "A modern finance tracking application",
-};
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const isDemoFromUrl = searchParams.get("demo") === "true";
+
+    if (isDemoFromUrl) localStorage.setItem("demo-mode", "true");
+  }, [searchParams]);
+
   return <MainLayoutClient>{children}</MainLayoutClient>;
 }

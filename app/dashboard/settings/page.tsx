@@ -21,10 +21,18 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { useUser } from "@/context/user-context";
+import { ProfileAvatarSection } from "@/components/ProfileAvatarSection";
 
 export default function SettingsPage() {
   const router = useRouter();
   const { theme, setTheme, resolvedTheme } = useTheme();
+
+  const { isGuest, userId, user, getDisplayName, getUserEmail } = useUser();
+  const deisplayName = getDisplayName();
+  const userEmail = getUserEmail();
+
+  const isDemo = isGuest;
 
   return (
     <div className="container mx-auto max-w-4xl p-4">
@@ -41,6 +49,14 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-bold">تنظیمات</h1>
       </div>
 
+      {/* BANNER DEMO */}
+      {isDemo && (
+        <div className="mb-2 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-4 text-sm text-yellow-700 dark:text-yellow-300">
+          🧪 شما در حال مشاهده نسخه نمایشی هستید. ویرایش اطلاعات حساب و مدیریت
+          داده‌ها غیرفعال است.
+        </div>
+      )}
+
       <div className="space-y-6">
         {/* پروفایل */}
         <Card className="p-6">
@@ -51,27 +67,16 @@ export default function SettingsPage() {
 
           <div className="space-y-4">
             {/* آواتار */}
-            <div className="flex items-center gap-4">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src="" alt="آواتار" />
-                <AvatarFallback className="text-2xl">ک</AvatarFallback>
-              </Avatar>
-              <Button
-                className="hover:bg-transparent"
-                variant="outline"
-                size="sm"
-              >
-                تغییر تصویر
-              </Button>
-            </div>
+            <ProfileAvatarSection />
 
             {/* نام */}
             <div className="space-y-2">
               <Label htmlFor="name">نام و نام خانوادگی</Label>
               <Input
                 id="name"
-                placeholder="نام خود را وارد کنید"
-                defaultValue="کاربر"
+                defaultValue={deisplayName}
+                readOnly={isDemo}
+                className={isDemo ? "cursor-not-allowed opacity-60" : ""}
               />
             </div>
 
@@ -82,11 +87,20 @@ export default function SettingsPage() {
                 id="email"
                 type="email"
                 placeholder="example@email.com"
-                defaultValue=""
+                defaultValue={userEmail}
+                className={isDemo ? "cursor-not-allowed opacity-60" : ""}
+                readOnly={isDemo}
               />
             </div>
-
-            <Button className="w-full">ذخیره تغییرات</Button>
+            {/* دکمه */}
+            <Button disabled={isDemo} className="w-full">
+              ذخیره تغییرات
+            </Button>
+            {isDemo && (
+              <p className="text-muted-foreground mt-2 text-xs">
+                در نسخه دمو امکان ویرایش پروفایل وجود ندارد.
+              </p>
+            )}
           </div>
         </Card>
 
@@ -131,13 +145,21 @@ export default function SettingsPage() {
 
           <div className="space-y-3">
             {/* دانلود پشتیبان */}
-            <Button variant="outline" className="w-full justify-start gap-3">
+            <Button
+              disabled={isDemo}
+              variant="outline"
+              className="w-full justify-start gap-3"
+            >
               <Download className="h-5 w-5" />
               دانلود پشتیبان (JSON)
             </Button>
 
             {/* بازیابی */}
-            <Button variant="outline" className="w-full justify-start gap-3">
+            <Button
+              disabled={isDemo}
+              variant="outline"
+              className="w-full justify-start gap-3"
+            >
               <Upload className="h-5 w-5" />
               بازیابی از فایل
             </Button>
@@ -146,6 +168,7 @@ export default function SettingsPage() {
             <Button
               variant="destructive"
               className="w-full justify-start gap-3"
+              disabled={isDemo}
             >
               <Trash2 className="h-5 w-5" />
               پاک کردن همه داده‌ها

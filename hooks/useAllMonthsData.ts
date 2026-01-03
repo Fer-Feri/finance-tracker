@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import moment from "jalali-moment";
 import { TransactionStatus, TransactionType } from "@/types/transaction";
+import { useUser } from "@/context/user-context";
 
 interface MonthData {
   month: number;
@@ -42,10 +43,27 @@ const PERSIAN_MONTHS = [
 
 // src/hooks/useAllMonthsData.ts
 export function useAllMonthsData(year: number) {
+  const { userId } = useUser();
   return useQuery<MonthData[]>({
     queryKey: ["monthlyStats", year],
     queryFn: async () => {
-      const res = await fetch("/api/transactions");
+      // ✅ اگر userId وجود نداشته باشد (کاربر لاگین نکرده)
+      if (!userId) {
+        return Array.from({ length: 12 }, (_, index) => ({
+          month: index + 1,
+          monthName: PERSIAN_MONTHS[index],
+          totalIncome: 0,
+          totalExpense: 0,
+          profit: 0,
+          transactionCount: 0,
+        }));
+      }
+
+      const res = await fetch("/api/transactions", {
+        headers: {
+          "x-user-id": userId,
+        },
+      });
       if (!res.ok) throw new Error("خطا در دریافت تراکنش‌ها");
 
       const transactions: ApiTransaction[] = await res.json();
@@ -113,17 +131,9 @@ export function useAllMonthsData(year: number) {
         };
       });
 
-      result.forEach((m) => {
-        console.log(
-          `  ماه ${m.monthName}: درآمد=${m.totalIncome.toLocaleString()}, ` +
-            `هزینه=${m.totalExpense.toLocaleString()}, ` +
-            `تعداد=${m.transactionCount}`,
-        );
-      });
-
       return result;
     },
-    enabled: !!year,
+    enabled: !!year && !!userId,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });

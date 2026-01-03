@@ -1,3 +1,4 @@
+import { useUser } from "@/context/user-context";
 import {
   PaymentMethod,
   TransactionStatus,
@@ -16,21 +17,28 @@ interface dataTransactionProps {
   status: TransactionStatus;
 }
 
-async function createTransaction(data: dataTransactionProps) {
-  const response = await fetch("/api/transactions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-
-  return response.json();
-}
-
 export function useCreateTransaction() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: createTransaction,
+  const { userId, isGuest } = useUser();
 
+  return useMutation({
+    mutationFn: async (data: dataTransactionProps) => {
+      if (!userId) throw new Error("آی دی یافت نشد");
+
+      if (isGuest) throw new Error("Demo Mode: ایجاد تراکنش غیرفعال است");
+
+      const response = await fetch("/api/transactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-user-id": userId },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error("خطا در ایجاد تراکنش");
+      }
+
+      return response.json();
+    },
     onMutate: () => {
       toast.loading("در حال ذخیره...", { id: "create-transaction" });
     },
