@@ -14,6 +14,7 @@ import { useUser as useClerkUser } from "@clerk/nextjs";
 import type { UserResource } from "@clerk/types";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNotificationStore } from "@/store/useNotificationStore"; // ✅ اضافه شد
 
 type ClerkUser = UserResource;
 
@@ -53,21 +54,74 @@ export function UserContextProvider({ children }: { children: ReactNode }) {
   const clerk = useClerkUser();
   const [demoFlag, setDemoFlag] = useState(() => isDemoEnabled());
   const router = useRouter();
-  const queryClient = useQueryClient(); // ✅ اضافه شد
+  const queryClient = useQueryClient();
+  const { addNotification, notifications } = useNotificationStore(); // ✅ اضافه شد
 
   // ✅ پاک کردن Cache هنگام تغییر userId
   const prevUserIdRef = useRef<string | null>(null);
+  const hasShownWelcomeRef = useRef(false); // ✅ برای جلوگیری از تکرار
 
+  // ✅ تابع نمایش پیام خوش‌آمد
+  const showWelcomeNotification = useCallback(() => {
+    // جلوگیری از نمایش مجدد
+    if (hasShownWelcomeRef.current) return;
+
+    // بررسی: آیا قبلاً پیام خوش‌آمد وجود دارد؟
+    const hasWelcome = notifications.some((n) => n.id === "welcome-message");
+    if (hasWelcome) return;
+
+    hasShownWelcomeRef.current = true;
+
+    // ایجاد پیام براساس نوع کاربر
+    const welcomeMessage = demoFlag
+      ? {
+          id: "welcome-demo",
+          title: "🎉 خوش آمدید به حالت دمو!",
+          message:
+            "شما در حال استفاده از نسخه آزمایشی هستید. برای ذخیره‌سازی دائم، لطفاً ثبت‌نام کنید.",
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        }
+      : {
+          id: "welcome-user",
+          title: "👋 خوش آمدید!",
+          message:
+            "به سیستم مدیریت مالی خود خوش آمدید. برای شروع، اولین تراکنش خود را ثبت کنید.",
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        };
+
+    // نمایش با تأخیر برای UX بهتر
+    setTimeout(() => {
+      addNotification(welcomeMessage);
+    }, 1500);
+  }, [demoFlag, notifications, addNotification]);
+
+  // ✅ نمایش پیام خوش‌آمد (فقط یکبار بعد از لود شدن)
   useEffect(() => {
     const currentUserId = demoFlag ? DEMO_USER_ID : clerk.user?.id || null;
 
-    // اگر userId تغییر کرد، همه Queries رو Invalidate کن
+    // فقط وقتی userId معتبر باشه
+    if (currentUserId && clerk.isLoaded) {
+      showWelcomeNotification();
+    }
+  }, [clerk.isLoaded, clerk.user?.id, demoFlag, showWelcomeNotification]);
+
+  // ✅ پاک کردن Cache و Reset هنگام تغییر کاربر
+  useEffect(() => {
+    const currentUserId = demoFlag ? DEMO_USER_ID : clerk.user?.id || null;
+
+    // اگر userId تغییر کرد
     if (
       prevUserIdRef.current !== null &&
       prevUserIdRef.current !== currentUserId
     ) {
-      queryClient.invalidateQueries(); // پاک کردن همه Cache ها
-      queryClient.clear(); // حذف کامل (اختیاری، برای اطمینان بیشتر)
+      // پاک کردن Cache
+      queryClient.invalidateQueries();
+      queryClient.clear();
+
+      // ریست کردن flag برای نمایش پیام جدید
+      hasShownWelcomeRef.current = false;
     }
 
     prevUserIdRef.current = currentUserId;
@@ -77,6 +131,8 @@ export function UserContextProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handleStorageChange = () => {
       setDemoFlag(isDemoEnabled());
+      // ریست flag برای نمایش پیام جدید بعد از تغییر حالت
+      hasShownWelcomeRef.current = false;
     };
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
@@ -145,12 +201,14 @@ export function UserContextProvider({ children }: { children: ReactNode }) {
   const enterDemo = useCallback(() => {
     localStorage.setItem("demo", "true");
     setDemoFlag(true);
+    hasShownWelcomeRef.current = false; // ✅ ریست برای نمایش پیام دمو
     router.push("/dashboard");
   }, [router]);
 
   const exitDemo = useCallback(() => {
     localStorage.removeItem("demo");
     setDemoFlag(false);
+    hasShownWelcomeRef.current = false; // ✅ ریست برای نمایش پیام واقعی
     router.push("/");
   }, [router]);
 

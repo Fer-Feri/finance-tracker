@@ -4,7 +4,6 @@ import { useClickOutside } from "@/hooks/useClickOutside";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { BellRing } from "lucide-react";
-import Link from "next/link";
 import { useRef } from "react";
 
 interface NotificationMenuProps {
@@ -16,7 +15,8 @@ export default function NotificationMenu({
   isOpenNotification,
   setIsOpenNotification,
 }: NotificationMenuProps) {
-  const { unreadCount, notifications } = useNotificationStore();
+  const { unreadCount, notifications, markAsRead, markAllAsRead } =
+    useNotificationStore();
 
   const refElem = useRef(null);
 
@@ -73,13 +73,23 @@ export default function NotificationMenu({
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className="bg-primary/5 border-border/30 rounded-lg border p-3"
+                    onClick={() => markAsRead(notification.id)}
+                    className={`border-border/30 cursor-pointer rounded-lg border p-3 transition ${
+                      !notification.isRead
+                        ? "bg-primary/5 hover:bg-primary/10"
+                        : "opacity-60"
+                    }`}
                   >
                     <p className="text-primary text-sm font-semibold">
-                      اعلان جدید
+                      {notification.title}
                     </p>
                     <p className="text-muted-foreground mt-1 text-xs">
-                      این یک اعلان نمونه برای تست UI است
+                      {notification.message}
+                    </p>
+                    <p className="text-muted-foreground/60 mt-2 text-left text-[10px]">
+                      {new Date(notification.createdAt).toLocaleTimeString(
+                        "fa-IR",
+                      )}
                     </p>
                   </div>
                 ))}
@@ -90,8 +100,8 @@ export default function NotificationMenu({
           {/* ================= Footer ================= */}
           {unreadCount > 0 && (
             <div className="border-border/30 from-primary/5 to-secondary/5 border-t bg-gradient-to-r px-4 py-2.5">
-              <Link
-                href="/dashboard/notifications"
+              <button
+                onClick={() => markAllAsRead()}
                 className="group text-foreground/70 hover:text-primary flex w-full items-center justify-center gap-2 py-1 text-xs font-medium transition-all duration-200"
               >
                 <span>مشاهده تمام اعلان‌ها</span>
@@ -108,7 +118,7 @@ export default function NotificationMenu({
                     d="M15 19l-7-7 7-7"
                   />
                 </svg>
-              </Link>
+              </button>
             </div>
           )}
         </motion.div>

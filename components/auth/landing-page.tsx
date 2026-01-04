@@ -73,7 +73,7 @@ export function LandingPage() {
               <Link href="/sign-in">
                 <Button
                   size="lg"
-                  className="group bg-primary w-full cursor-pointer px-8 text-base font-bold shadow-lg transition-all hover:shadow-xl sm:w-auto"
+                  className="group bg-primary w-full cursor-pointer p-6 text-base font-bold shadow-lg transition-all hover:shadow-xl sm:w-auto"
                 >
                   <span className="flex items-center gap-2">
                     ورود / ثبت‌نام
@@ -86,7 +86,7 @@ export function LandingPage() {
                 onClick={handleDemo}
                 size="lg"
                 // variant="outline"
-                className="!bg-destructive text-muted !hover:text-prima w-full cursor-pointer border-2 px-8 text-base font-bold transition-all sm:w-auto"
+                className="!bg-destructive text-muted !hover:text-prima w-fit cursor-pointer border-2 p-6 text-base font-bold transition-all sm:w-auto"
               >
                 مشاهده نسخه نمایشی
               </Button>

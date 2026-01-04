@@ -146,9 +146,9 @@ export default function SettingsPage() {
           <div className="space-y-3">
             {/* دانلود پشتیبان */}
             <Button
-              disabled={isDemo}
+              disabled
               variant="outline"
-              className="w-full justify-start gap-3"
+              className="w-full justify-start gap-3 opacity-60"
             >
               <Download className="h-5 w-5" />
               دانلود پشتیبان (JSON)
@@ -156,26 +156,29 @@ export default function SettingsPage() {
 
             {/* بازیابی */}
             <Button
-              disabled={isDemo}
+              disabled
               variant="outline"
-              className="w-full justify-start gap-3"
+              className="w-full justify-start gap-3 opacity-60"
             >
               <Upload className="h-5 w-5" />
               بازیابی از فایل
             </Button>
 
-            {/* پاک کردن */}
+            {/* حذف داده‌ها */}
             <Button
+              disabled
               variant="destructive"
-              className="w-full justify-start gap-3"
-              disabled={isDemo}
+              className="w-full justify-start gap-3 opacity-60"
             >
               <Trash2 className="h-5 w-5" />
               پاک کردن همه داده‌ها
             </Button>
-            <p className="text-muted-foreground px-2 text-xs">
-              ⚠️ این عملیات غیرقابل بازگشت است
-            </p>
+
+            {/* پیام نسخه بعدی */}
+            <div className="bg-muted/40 text-muted-foreground rounded-lg p-3 text-xs">
+              🚧 این قابلیت‌ها در نسخه‌های بعدی (v2) اضافه خواهند شد و در MVP
+              پیاده‌سازی نشده‌اند.
+            </div>
           </div>
         </Card>
 
@@ -291,7 +294,7 @@ export default function SettingsPage() {
             </div>
             <div className="flex justify-between">
               <span>آخرین بروزرسانی</span>
-              <span className="text-foreground font-medium">1404/10/05</span>
+              <span className="text-foreground font-medium">1404/10/15</span>
             </div>
             <p className="border-t pt-4 text-center">ساخته شده با ❤️</p>
           </div>
