@@ -1,10 +1,12 @@
 import { SignUp } from "@clerk/nextjs";
+import { MoveLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function SignUpPage() {
   return (
-    <div className="from-background via-background to-primary/5 relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br p-4">
+    <div className="from-background via-background to-primary/5 relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-br p-4">
       {/* پس‌زمینه مشابه Landing */}
-      <div className="absolute inset-0">
+      <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,oklch(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,oklch(var(--border))_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20" />
         <div className="bg-primary/20 absolute -top-40 -right-40 h-96 w-96 rounded-full blur-[120px]" />
         <div className="bg-secondary/20 absolute -bottom-40 -left-40 h-96 w-96 rounded-full blur-[120px]" />
@@ -44,6 +46,14 @@ export default function SignUpPage() {
           }}
         />
       </div>
+
+      <Link
+        href="/"
+        className="text-primary hover:text-primary/80 mt-4 flex cursor-pointer items-center gap-2"
+      >
+        برگشت
+        <MoveLeft className="mb-1 inline-block h-6 w-6" />
+      </Link>
     </div>
   );
 }
