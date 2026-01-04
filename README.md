@@ -1,36 +1,57 @@
 # 💰 Financer — Personal Finance Management App
 
-A modern, fast and fully localized personal finance manager built with **Next.js**, **TypeScript**, and **Tailwind CSS**.
+Financer is a modern and fully localized personal finance management application built with **Next.js** and **TypeScript**.
 
-Financer helps you track income & expenses, analyze spending habits, and view beautiful yearly & monthly reports — all with full Persian (RTL) support and Jalali calendar integration.
+It helps users track income and expenses, analyze spending patterns, and view clear monthly & yearly reports — with full **Persian (RTL)** support and **Jalali calendar** integration.
 
----
-
-## 📸 Screenshot
-
-![Financer App Dashboard showcasing transactions, reports, and RTL support.](public/financer_dashboard.png)
+🌐 **Live Demo:**  
+https://finance-tracker-psi-five.vercel.app/
 
 ---
 
 ## ✨ Features
 
-- Track and categorize **income** and **expenses**
-- **Monthly & yearly** analytical reports
-- Beautiful and interactive **charts**
-- **Jalali (Persian) calendar** support
-- Fully **RTL-friendly** UI
+- Track **income & expenses** with categories
+- **Monthly & yearly** financial reports
+- Interactive **charts & analytics**
+- **Jalali (Persian) calendar**
+- Full **RTL (Persian-first) UI**
 - **Dark / Light** theme support
-- Smooth UI transitions powered by **Framer Motion**
-- Local-first user experience
+- Smooth animations with **Framer Motion**
+- Notifications & feedback system
+- Guest / Demo mode (no account required)
+
+> 🚧 Import / Export & data deletion are planned for future releases (v2).
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Framework:** Next.js 14 (App Router)
+- **Framework:** Next.js (App Router)
 - **Language:** TypeScript
-- **Styling:** Tailwind CSS
+- **Styling:** Tailwind CSS + shadcn/ui
 - **State Management:** Zustand
+- **Server State:** TanStack React Query
+- **Authentication:** Clerk
+- **Database:** PostgreSQL (Supabase)
+- **ORM:** Prisma
+- **Charts:** Recharts
 - **Animations:** Framer Motion
-- **Icons:** Lucide Icons
-- **Charts:** TBD (Recharts)
+
+---
+
+## 📸 Screenshots
+
+![Financer Dashboard](public/financer_dashboard.png)
+
+---
+
+## 🚀 Getting Started (Local)
+
+```bash
+git clone https://github.com/your-username/finance-tracker.git
+cd finance-tracker
+
+npm install
+npm run dev
+```
