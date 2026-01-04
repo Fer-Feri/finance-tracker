@@ -6,7 +6,7 @@ interface HeaderRightProps {
 }
 
 export default function HeaderRight({ title }: HeaderRightProps) {
-  const { OpenMobile } = useSidebarStore();
+  const { openMobile: OpenMobile } = useSidebarStore();
   return (
     <div className="flex items-center gap-4">
       {/* Hamburger Menu برای موبایل */}
